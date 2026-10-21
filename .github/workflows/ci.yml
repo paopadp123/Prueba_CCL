@@ -11,6 +11,48 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  database:
+    name: Database (PostgreSQL)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: inventory
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      PGHOST: localhost
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: inventory
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Apply scripts (twice to verify idempotency)
+        run: |
+          for run in 1 2; do
+            for script in database/[0-9][0-9]_*.sql; do
+              psql -q -v ON_ERROR_STOP=1 -f "$script"
+            done
+          done
+
+      - name: Run database tests
+        run: |
+          for test in database/tests/*.test.sql; do
+            psql -q -v ON_ERROR_STOP=1 -f "$test"
+          done
+
   backend:
     name: Backend (.NET)
     runs-on: ubuntu-latest
