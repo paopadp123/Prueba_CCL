@@ -5,13 +5,24 @@ Scripts de PostgreSQL 17 para el sistema de inventario. Todos son idempotentes y
 | Script | Contenido |
 |---|---|
 | `01_schema.sql` | Esquema `inventory`: tablas `users`, `products` y `movements`, restricciones e índices |
+| `02_audit.sql` | Auditoría: tabla `audit_log` (solo inserciones) y trigger genérico sobre las tablas de negocio |
 
 ## Ejecución
 
 ```bash
 createdb -U postgres inventory
 psql -U postgres -d inventory -v ON_ERROR_STOP=1 -f database/01_schema.sql
+psql -U postgres -d inventory -v ON_ERROR_STOP=1 -f database/02_audit.sql
 ```
+
+## Auditoría
+
+Cada INSERT, UPDATE y DELETE sobre `users`, `products` y `movements` se registra en `inventory.audit_log` con los datos anteriores y nuevos en JSONB.
+
+- El usuario de la aplicación se toma de la variable de sesión `app.user_id`, que fijan los procedimientos con `SET LOCAL`.
+- `password_hash` nunca se guarda en la auditoría.
+- Un UPDATE sin cambios reales no genera registro.
+- El registro no se puede modificar ni borrar: un trigger lo rechaza con SQLSTATE `42501`.
 
 ## Pruebas
 
