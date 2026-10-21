@@ -6,14 +6,50 @@ Scripts de PostgreSQL 17 para el sistema de inventario. Todos son idempotentes y
 |---|---|
 | `01_schema.sql` | Esquema `inventory`: tablas `users`, `products` y `movements`, restricciones e índices |
 | `02_audit.sql` | Auditoría: tabla `audit_log` (solo inserciones) y trigger genérico sobre las tablas de negocio |
+| `03_procedures.sql` | Procedimientos de entradas y salidas, y funciones de consulta de stock e historial |
+| `04_seed.sql` | Datos de demostración: usuarios `admin` / `operador` y productos con stock inicial |
 
 ## Ejecución
 
 ```bash
 createdb -U postgres inventory
-psql -U postgres -d inventory -v ON_ERROR_STOP=1 -f database/01_schema.sql
-psql -U postgres -d inventory -v ON_ERROR_STOP=1 -f database/02_audit.sql
+for script in database/0*.sql; do psql -U postgres -d inventory -v ON_ERROR_STOP=1 -f "$script"; done
 ```
+
+## Procedimientos
+
+| Objeto | Tipo | Uso |
+|---|---|---|
+| `sp_register_entry(product_id, quantity, user_id, reason, OUT movement_id, OUT stock_after)` | PROCEDURE | Registra una entrada |
+| `sp_register_exit(product_id, quantity, user_id, reason, OUT movement_id, OUT stock_after)` | PROCEDURE | Registra una salida |
+| `fn_get_stock(search, only_active, limit, offset)` | FUNCTION | Stock actual paginado, con filtro por SKU o nombre |
+| `fn_get_movements(product_id, limit, offset)` | FUNCTION | Historial de movimientos paginado |
+
+```sql
+CALL inventory.sp_register_exit(1, 5, 1, 'Venta', NULL, NULL);
+SELECT * FROM inventory.fn_get_stock('lap');
+```
+
+Entradas y salidas comparten `sp_register_movement`, que bloquea la fila del producto con `FOR UPDATE`: dos salidas simultáneas sobre el mismo producto se aplican una después de otra, y la segunda valida con el stock ya actualizado. Las consultas son funciones porque en PostgreSQL un procedimiento no puede devolver un conjunto de filas.
+
+### Errores de negocio
+
+| SQLSTATE | Significado |
+|---|---|
+| `IN001` | Producto no encontrado |
+| `IN002` | Stock insuficiente (`DETAIL` trae `available` y `requested`) |
+| `IN003` | Producto inactivo |
+| `IN004` | Usuario no encontrado o inactivo |
+| `IN005` | Cantidad inválida |
+
+### Usuarios de demostración
+
+| Usuario | Contraseña | Rol |
+|---|---|---|
+| `admin` | `Admin123*` | Admin |
+| `operador` | `Operador123*` | Operator |
+
+Solo para desarrollo local; las contraseñas se guardan con BCrypt.
 
 ## Auditoría
 
