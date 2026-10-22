@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { ApiError } from '../../core/http/api-error';
+import { ThemeToggle } from '../../core/theme/theme-toggle';
 import { Icon } from '../../shared/ui/icon';
 
 /**
@@ -11,7 +12,7 @@ import { Icon } from '../../shared/ui/icon';
  */
 @Component({
   selector: 'app-login-page',
-  imports: [ReactiveFormsModule, Icon],
+  imports: [ReactiveFormsModule, Icon, ThemeToggle],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './login-page.html',
   styleUrl: './login-page.scss',

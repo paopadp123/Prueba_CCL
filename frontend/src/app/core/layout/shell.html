@@ -12,6 +12,8 @@
     }
   </nav>
 
+  <app-theme-toggle class="topbar__theme" />
+
   @if (auth.user(); as user) {
     <div class="user-menu">
       <button
@@ -77,6 +79,9 @@
         {{ item.label }}
       </a>
     }
+
+    <div class="drawer__divider"></div>
+    <app-theme-toggle [labeled]="true" />
 
     <button type="button" class="drawer__link drawer__logout" (click)="auth.logout()">
       <app-icon name="logout" />

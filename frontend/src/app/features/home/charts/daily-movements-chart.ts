@@ -53,7 +53,7 @@ const barWidth = 11;
     .chart { position: relative; }
     svg { display: block; width: 100%; height: auto; overflow: visible; }
     .grid { stroke: var(--border); stroke-dasharray: 2 3; }
-    .baseline { stroke: #c5cdd8; }
+    .baseline { stroke: var(--axis-line); }
     .axis { fill: var(--muted); font-size: 9px; }
     .axis--x { text-anchor: middle; text-transform: capitalize; }
     .hit { fill: transparent; }

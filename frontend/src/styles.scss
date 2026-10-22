@@ -6,10 +6,14 @@
   --surface-tint: #f3f7fd;
   --text: #17202b;
   --muted: #5d6877;
+  --muted-soft: #eef1f5;
   --border: #e1e6ed;
   --primary: #2a6fd1;
+  --primary-solid: #2a6fd1;
   --primary-hover: #1f5bb0;
   --primary-soft: #e7f0fc;
+  --primary-glow: rgba(42, 111, 209, 0.35);
+  --on-primary: #ffffff;
   --danger: #c62828;
   --danger-soft: #fdecea;
   --success: #1e7b34;
@@ -17,10 +21,21 @@
   --warning: #9a5b00;
   --warning-soft: #fff3dc;
   --info: #2a6fd1;
+  --switch-off: #cfd6df;
+  --link-underline: #b8c2cf;
+  --axis-line: #c5cdd8;
+  --table-border: #d6e3f5;
+  --table-head: #eaf2fd;
+  --table-head-end: #f7faff;
+  --tint-warm: #fff4ec;
+  --tint-cool: #eef3ff;
+  --tint-fresh: #ecf8f2;
+  --backdrop: rgba(15, 23, 42, 0.35);
   --radius: 8px;
   --radius-lg: 12px;
   --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
   --shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  --shadow-lg: 0 12px 40px rgba(15, 23, 42, 0.1);
   /* Series de los gráficos (paleta validada para daltonismo). */
   --series-1: #2a78d6;
   --series-2: #eb6834;
@@ -28,6 +43,52 @@
   --series-4: #eda100;
   --series-other: #b4bcc8;
   color-scheme: light;
+}
+
+/*
+ * Modo oscuro: los mismos tokens con valores propios para fondo oscuro (no es una inversión
+ * automática). Las series usan los pasos oscuros de la misma paleta, validados contra este fondo.
+ * El atributo data-theme lo pone ThemeService, y un script en index.html lo aplica antes de pintar.
+ */
+:root[data-theme='dark'] {
+  --bg: #0f141b;
+  --surface: #171d26;
+  --surface-tint: #1e2733;
+  --text: #e6ebf2;
+  --muted: #9aa6b5;
+  --muted-soft: #252e3a;
+  --border: #2b3542;
+  --primary: #6ea4f2;
+  --primary-solid: #2f6fcf;
+  --primary-hover: #3d7fe0;
+  --primary-soft: #1c2c45;
+  --primary-glow: rgba(47, 111, 207, 0.45);
+  --danger: #f28b8b;
+  --danger-soft: #3b1e22;
+  --success: #6fcf8a;
+  --success-soft: #173222;
+  --warning: #f1bb5c;
+  --warning-soft: #3a2d14;
+  --info: #6ea4f2;
+  --switch-off: #3a4554;
+  --link-underline: #4a5666;
+  --axis-line: #3d4855;
+  --table-border: #263a57;
+  --table-head: #1a2638;
+  --table-head-end: #18202c;
+  --tint-warm: #2a2019;
+  --tint-cool: #1a2335;
+  --tint-fresh: #17271f;
+  --backdrop: rgba(0, 0, 0, 0.55);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.45);
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --series-other: #5b6675;
+  color-scheme: dark;
 }
 
 *,
@@ -43,6 +104,7 @@ body {
 
 body {
   min-height: 100dvh;
+  transition: background-color 0.2s, color 0.2s;
   background: var(--bg);
   color: var(--text);
   font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
@@ -178,7 +240,7 @@ code {
 }
 
 .badge--muted {
-  background: #eef1f5;
+  background: var(--muted-soft);
   color: var(--muted);
 }
 
@@ -225,8 +287,8 @@ code {
 }
 
 .button--primary {
-  background: var(--primary);
-  color: #fff;
+  background: var(--primary-solid);
+  color: var(--on-primary);
 
   &:hover:not(:disabled) {
     background: var(--primary-hover);
@@ -395,7 +457,7 @@ code {
     height: 1.25rem;
     margin: 0;
     border-radius: 999px;
-    background: #cfd6df;
+    background: var(--switch-off);
     appearance: none;
     cursor: pointer;
     transition: background 0.15s;
@@ -408,13 +470,13 @@ code {
       width: 1rem;
       height: 1rem;
       border-radius: 50%;
-      background: #fff;
+      background: var(--on-primary);
       box-shadow: var(--shadow-sm);
       transition: transform 0.15s;
     }
 
     &:checked {
-      background: var(--primary);
+      background: var(--primary-solid);
     }
 
     &:checked::after {
@@ -521,9 +583,9 @@ code {
 
 .table-card {
   overflow: hidden;
-  border: 1px solid #d6e3f5;
+  border: 1px solid var(--table-border);
   border-radius: var(--radius-lg);
-  background: linear-gradient(180deg, #eaf2fd 0%, #f7faff 3.25rem, var(--surface) 3.25rem);
+  background: linear-gradient(180deg, var(--table-head) 0%, var(--table-head-end) 3.25rem, var(--surface) 3.25rem);
   box-shadow: var(--shadow-sm);
 }
 
@@ -578,7 +640,7 @@ code {
 
   td a {
     color: var(--text);
-    text-decoration-color: #b8c2cf;
+    text-decoration-color: var(--link-underline);
     text-underline-offset: 3px;
 
     &:hover {

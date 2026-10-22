@@ -27,8 +27,8 @@
   width: 2rem;
   height: 2rem;
   border-radius: 8px;
-  background: var(--primary);
-  color: #fff;
+  background: var(--primary-solid);
+  color: var(--on-primary);
 }
 
 .nav {
@@ -151,7 +151,7 @@
   position: fixed;
   inset: 3.75rem 0 0;
   z-index: 15;
-  background: rgba(15, 23, 42, 0.35);
+  background: var(--backdrop);
 }
 
 .drawer {
@@ -207,6 +207,11 @@
   }
 }
 
+.drawer__divider {
+  margin: 0.5rem 0;
+  border-top: 1px solid var(--border);
+}
+
 .drawer__logout {
   margin-top: auto;
   color: var(--danger);
@@ -225,7 +230,8 @@
   }
 
   .nav,
-  .user-menu {
+  .user-menu,
+  .topbar__theme {
     display: none;
   }
 

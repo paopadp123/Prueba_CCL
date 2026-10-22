@@ -5,6 +5,7 @@ import { filter } from 'rxjs';
 
 import { Icon, IconName } from '../../shared/ui/icon';
 import { AuthService } from '../auth/auth.service';
+import { ThemeToggle } from '../theme/theme-toggle';
 
 interface NavItem {
   path: string;
@@ -19,7 +20,7 @@ interface NavItem {
  */
 @Component({
   selector: 'app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, Icon],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, Icon, ThemeToggle],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './shell.html',
   styleUrl: './shell.scss',

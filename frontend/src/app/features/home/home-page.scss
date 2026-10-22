@@ -33,15 +33,15 @@
 
 /* Fondos suaves por tarjeta, como acento visual. */
 .panel--warm {
-  background: linear-gradient(160deg, #fff4ec 0%, var(--surface) 55%);
+  background: linear-gradient(160deg, var(--tint-warm) 0%, var(--surface) 55%);
 }
 
 .panel--cool {
-  background: linear-gradient(160deg, #eef3ff 0%, var(--surface) 55%);
+  background: linear-gradient(160deg, var(--tint-cool) 0%, var(--surface) 55%);
 }
 
 .panel--fresh {
-  background: linear-gradient(160deg, #ecf8f2 0%, var(--surface) 55%);
+  background: linear-gradient(160deg, var(--tint-fresh) 0%, var(--surface) 55%);
 }
 
 .kpi {
