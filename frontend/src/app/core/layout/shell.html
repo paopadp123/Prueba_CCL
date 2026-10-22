@@ -1,21 +1,89 @@
 <header class="topbar">
-  <a class="brand" routerLink="/">Inventario</a>
+  <a class="brand" routerLink="/">
+    <span class="brand__logo"><app-icon name="box" [size]="18" /></span>
+    Inventario
+  </a>
 
   <nav class="nav" aria-label="Principal">
-    <a routerLink="/" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">Inicio</a>
-    <a routerLink="/products" routerLinkActive="is-active">Productos</a>
-    <a routerLink="/movements" routerLinkActive="is-active">Movimientos</a>
-    <a routerLink="/stock" routerLinkActive="is-active">Stock</a>
+    @for (item of navItems; track item.path) {
+      <a [routerLink]="item.path" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: item.exact }">
+        {{ item.label }}
+      </a>
+    }
   </nav>
 
   @if (auth.user(); as user) {
-    <div class="account">
-      <span class="account__name">{{ user.fullName }}</span>
-      <span class="badge">{{ user.role === 'Admin' ? 'Administrador' : 'Operador' }}</span>
-      <button type="button" class="button button--ghost" (click)="auth.logout()">Salir</button>
+    <div class="user-menu">
+      <button
+        type="button"
+        class="user-menu__trigger"
+        aria-haspopup="menu"
+        [attr.aria-expanded]="userMenuOpen()"
+        (click)="toggleUserMenu($event)"
+      >
+        <span class="avatar">{{ initials() }}</span>
+        <span class="user-menu__name">{{ user.fullName }}</span>
+        <app-icon name="chevronDown" [size]="16" />
+      </button>
+
+      @if (userMenuOpen()) {
+        <div class="user-menu__panel" role="menu">
+          <div class="user-menu__info">
+            <strong>{{ user.fullName }}</strong>
+            <span class="muted">{{ user.username }}</span>
+            <span class="badge">{{ roleLabel() }}</span>
+          </div>
+          <button type="button" class="menu-item" role="menuitem" (click)="auth.logout()">
+            <app-icon name="logout" [size]="18" /> Cerrar sesión
+          </button>
+        </div>
+      }
     </div>
   }
+
+  <button
+    type="button"
+    class="menu-toggle"
+    aria-controls="mobile-menu"
+    [attr.aria-expanded]="mobileMenuOpen()"
+    [attr.aria-label]="mobileMenuOpen() ? 'Cerrar menú' : 'Abrir menú'"
+    (click)="toggleMobileMenu()"
+  >
+    <app-icon [name]="mobileMenuOpen() ? 'close' : 'menu'" [size]="24" />
+  </button>
 </header>
+
+@if (mobileMenuOpen()) {
+  <div class="drawer-backdrop" (click)="closeMenus()"></div>
+  <nav id="mobile-menu" class="drawer" aria-label="Menú">
+    @if (auth.user(); as user) {
+      <div class="drawer__user">
+        <span class="avatar avatar--large">{{ initials() }}</span>
+        <div>
+          <strong>{{ user.fullName }}</strong>
+          <span class="badge">{{ roleLabel() }}</span>
+        </div>
+      </div>
+    }
+
+    @for (item of navItems; track item.path) {
+      <a
+        class="drawer__link"
+        [routerLink]="item.path"
+        routerLinkActive="is-active"
+        [routerLinkActiveOptions]="{ exact: item.exact }"
+      >
+        <app-icon [name]="item.icon" />
+        {{ item.label }}
+      </a>
+    }
+
+    <button type="button" class="drawer__link drawer__logout" (click)="auth.logout()">
+      <app-icon name="logout" />
+      Cerrar sesión
+    </button>
+  </nav>
+}
 
 <main class="content">
   <router-outlet />

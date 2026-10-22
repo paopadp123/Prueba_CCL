@@ -5,6 +5,12 @@ import { Observable } from 'rxjs';
 import { apiUrl } from '../../core/http/api-url';
 import { ListQuery, PagedResponse, toListParams } from '../../shared/data/paged';
 
+/**
+ * Unidades a partir de las cuales un producto se considera con stock bajo.
+ * El modelo no tiene un mínimo por producto; es un umbral común para alertas.
+ */
+export const lowStockThreshold = 10;
+
 export interface StockItem {
   productId: number;
   sku: string;

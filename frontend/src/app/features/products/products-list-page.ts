@@ -8,7 +8,8 @@ import { AuthService } from '../../core/auth/auth.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { LoadState, toLoadState } from '../../shared/data/load-state';
 import { ListQuery, PagedResponse } from '../../shared/data/paged';
-import { Pagination } from '../../shared/ui/pagination';
+import { Icon } from '../../shared/ui/icon';
+import { Pagination, resultsLabel } from '../../shared/ui/pagination';
 import { Product } from './product.models';
 import { ProductsService } from './products.service';
 
@@ -17,7 +18,7 @@ import { ProductsService } from './products.service';
  */
 @Component({
   selector: 'app-products-list-page',
-  imports: [RouterLink, CurrencyPipe, Pagination],
+  imports: [RouterLink, CurrencyPipe, Pagination, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './products-list-page.html',
 })
@@ -25,6 +26,7 @@ export class ProductsListPage {
   private readonly products = inject(ProductsService);
   private readonly notifications = inject(NotificationService);
   protected readonly auth = inject(AuthService);
+  protected readonly resultsLabel = resultsLabel;
 
   protected readonly search = signal('');
   protected readonly includeInactive = signal(false);

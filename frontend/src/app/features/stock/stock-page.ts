@@ -6,20 +6,24 @@ import { debounceTime, switchMap } from 'rxjs';
 
 import { LoadState, toLoadState } from '../../shared/data/load-state';
 import { ListQuery, PagedResponse } from '../../shared/data/paged';
-import { Pagination } from '../../shared/ui/pagination';
-import { StockItem, StockService } from './stock.service';
+import { Icon } from '../../shared/ui/icon';
+import { Pagination, resultsLabel } from '../../shared/ui/pagination';
+import { lowStockThreshold, StockItem, StockService } from './stock.service';
 
 /**
  * Stock actual de los productos con su valor en inventario.
  */
 @Component({
   selector: 'app-stock-page',
-  imports: [RouterLink, CurrencyPipe, Pagination],
+  imports: [RouterLink, CurrencyPipe, Pagination, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './stock-page.html',
 })
 export class StockPage {
   private readonly stock = inject(StockService);
+
+  protected readonly lowStockThreshold = lowStockThreshold;
+  protected readonly resultsLabel = resultsLabel;
 
   protected readonly search = signal('');
   protected readonly includeInactive = signal(false);

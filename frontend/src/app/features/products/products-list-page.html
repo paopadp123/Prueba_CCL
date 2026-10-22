@@ -4,85 +4,99 @@
     <p class="muted">Catálogo de productos y su stock actual.</p>
   </div>
   @if (auth.isAdmin()) {
-    <a class="button button--primary" routerLink="new">Nuevo producto</a>
+    <a class="button button--primary" routerLink="new"><app-icon name="plus" [size]="18" /> Nuevo producto</a>
   }
 </header>
 
-<section class="card">
-  <div class="filters">
-    <div class="field">
-      <label for="search">Buscar</label>
-      <input
-        id="search"
-        type="search"
-        placeholder="SKU o nombre"
-        [value]="search()"
-        (input)="onSearch($any($event.target).value)"
-      />
-    </div>
-    <label class="checkbox">
-      <input type="checkbox" [checked]="includeInactive()" (change)="onIncludeInactive($any($event.target).checked)" />
-      Incluir inactivos
-    </label>
-  </div>
+@let current = state();
 
-  @let current = state();
+<div class="toolbar">
+  <div class="search">
+    <label for="search" class="sr-only">Buscar</label>
+    <input
+      id="search"
+      type="search"
+      placeholder="SKU o nombre"
+      [value]="search()"
+      (input)="onSearch($any($event.target).value)"
+    />
+    <app-icon name="search" [size]="18" />
+  </div>
+  <label class="switch">
+    <input type="checkbox" [checked]="includeInactive()" (change)="onIncludeInactive($any($event.target).checked)" />
+    Incluir inactivos
+  </label>
+  @if (current.status === 'loaded' && current.data.totalCount > 0) {
+    <app-pagination
+      class="toolbar__end"
+      [page]="current.data.page"
+      [totalPages]="current.data.totalPages"
+      (pageChange)="page.set($event)"
+    />
+  }
+</div>
+
+<section class="table-card">
   @if (current.status === 'loading') {
-    <p class="muted" role="status">Cargando productos…</p>
+    <p class="empty" role="status">Cargando productos…</p>
   } @else if (current.status === 'error') {
-    <div class="alert alert--error" role="alert">{{ current.message }}</div>
+    <div class="table-card__body"><div class="alert alert--error" role="alert">{{ current.message }}</div></div>
   } @else if (current.data.items.length === 0) {
     <p class="empty">No hay productos que coincidan con la búsqueda.</p>
   } @else {
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>SKU</th>
-          <th>Nombre</th>
-          <th class="num">Precio</th>
-          <th class="num">Stock</th>
-          <th>Estado</th>
-          <th><span class="sr-only">Acciones</span></th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (product of current.data.items; track product.id) {
+    <div class="table-card__header">
+      <span>{{ resultsLabel(current.data.totalCount) }}</span>
+    </div>
+    <div class="table-card__body">
+      <table class="data-table">
+        <thead>
           <tr>
-            <td data-label="SKU"><code>{{ product.sku }}</code></td>
-            <td data-label="Nombre">
-              <a [routerLink]="[product.id]">{{ product.name }}</a>
-            </td>
-            <td data-label="Precio" class="num">{{ product.unitPrice | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
-            <td data-label="Stock" class="num">{{ product.currentStock }}</td>
-            <td data-label="Estado">
-              <span class="badge" [class.badge--muted]="!product.isActive">
-                {{ product.isActive ? 'Activo' : 'Inactivo' }}
-              </span>
-            </td>
-            <td class="actions">
-              <a class="button button--ghost button--small" [routerLink]="[product.id]">Ver</a>
-              @if (auth.isAdmin()) {
-                <a class="button button--ghost button--small" [routerLink]="[product.id, 'edit']">Editar</a>
-                <button
-                  type="button"
-                  class="button button--ghost button--small"
-                  [disabled]="busyId() === product.id"
-                  (click)="toggleActive(product)"
-                >
-                  {{ product.isActive ? 'Desactivar' : 'Activar' }}
-                </button>
-              }
-            </td>
+            <th>SKU</th>
+            <th>Nombre</th>
+            <th class="num">Precio</th>
+            <th class="num">Stock</th>
+            <th>Estado</th>
+            <th><span class="sr-only">Acciones</span></th>
           </tr>
-        }
-      </tbody>
-    </table>
-
-    <app-pagination
-      [page]="current.data.page"
-      [totalPages]="current.data.totalPages"
-      [totalCount]="current.data.totalCount"
-      (pageChange)="page.set($event)"
-    />
+        </thead>
+        <tbody>
+          @for (product of current.data.items; track product.id) {
+            <tr>
+              <td data-label="SKU"><code>{{ product.sku }}</code></td>
+              <td class="cell-title">
+                <a [routerLink]="[product.id]">{{ product.name }}</a>
+              </td>
+              <td data-label="Precio" class="num">{{ product.unitPrice | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
+              <td data-label="Stock" class="num">{{ product.currentStock }}</td>
+              <td class="cell-badge">
+                <span class="badge" [class.badge--success]="product.isActive" [class.badge--muted]="!product.isActive">
+                  {{ product.isActive ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <td class="actions">
+                <span class="row-actions">
+                  @if (auth.isAdmin()) {
+                    <button
+                      type="button"
+                      class="button button--ghost button--small"
+                      [disabled]="busyId() === product.id"
+                      (click)="toggleActive(product)"
+                    >
+                      {{ product.isActive ? 'Desactivar' : 'Activar' }}
+                    </button>
+                    <a class="icon-button" [routerLink]="[product.id, 'edit']" [attr.aria-label]="'Editar ' + product.name">
+                      <app-icon name="edit" [size]="18" />
+                    </a>
+                  }
+                  <a class="icon-button" [routerLink]="[product.id]" [attr.aria-label]="'Ver ' + product.name">
+                    <app-icon name="chevronRight" [size]="18" />
+                  </a>
+                </span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
   }
 </section>

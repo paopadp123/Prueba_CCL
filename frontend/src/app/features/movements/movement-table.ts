@@ -2,6 +2,7 @@ import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { Icon } from '../../shared/ui/icon';
 import { Movement, movementTypeLabels } from './movement.models';
 
 /**
@@ -9,7 +10,7 @@ import { Movement, movementTypeLabels } from './movement.models';
  */
 @Component({
   selector: 'app-movement-table',
-  imports: [DatePipe, RouterLink],
+  imports: [DatePipe, RouterLink, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <table class="data-table">
@@ -29,16 +30,19 @@ import { Movement, movementTypeLabels } from './movement.models';
       <tbody>
         @for (movement of movements(); track movement.movementId) {
           <tr>
-            <td data-label="Fecha">{{ movement.createdAt | date: 'short' }}</td>
-            <td data-label="Tipo">
-              <span class="badge" [class.badge--danger]="movement.type === 'Exit'" [class.badge--success]="movement.type === 'Entry'">
+            <td data-label="Fecha" [class.cell-title]="!showProduct()">{{ movement.createdAt | date: 'short' }}</td>
+            <td class="cell-badge">
+              <span class="badge" [class.badge--warning]="movement.type === 'Exit'" [class.badge--success]="movement.type === 'Entry'">
+                <app-icon [name]="movement.type === 'Exit' ? 'exit' : 'entry'" [size]="14" />
                 {{ labels[movement.type] }}
               </span>
             </td>
             @if (showProduct()) {
-              <td data-label="Producto">
-                <a [routerLink]="['/products', movement.productId]">{{ movement.productName }}</a>
-                <small class="muted"> · {{ movement.sku }}</small>
+              <td class="cell-title">
+                <span>
+                  <a [routerLink]="['/products', movement.productId]">{{ movement.productName }}</a>
+                  <small class="muted"> · {{ movement.sku }}</small>
+                </span>
               </td>
             }
             <td data-label="Cantidad" class="num">

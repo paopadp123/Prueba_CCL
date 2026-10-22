@@ -5,72 +5,90 @@
   </div>
 </header>
 
-<section class="card">
-  <div class="filters">
-    <div class="field">
-      <label for="search">Buscar</label>
-      <input
-        id="search"
-        type="search"
-        placeholder="SKU o nombre"
-        [value]="search()"
-        (input)="onSearch($any($event.target).value)"
-      />
-    </div>
-    <label class="checkbox">
-      <input type="checkbox" [checked]="includeInactive()" (change)="onIncludeInactive($any($event.target).checked)" />
-      Incluir inactivos
-    </label>
-  </div>
+@let current = state();
 
-  @let current = state();
+<div class="toolbar">
+  <div class="search">
+    <label for="search" class="sr-only">Buscar</label>
+    <input
+      id="search"
+      type="search"
+      placeholder="SKU o nombre"
+      [value]="search()"
+      (input)="onSearch($any($event.target).value)"
+    />
+    <app-icon name="search" [size]="18" />
+  </div>
+  <label class="switch">
+    <input type="checkbox" [checked]="includeInactive()" (change)="onIncludeInactive($any($event.target).checked)" />
+    Incluir inactivos
+  </label>
+  @if (current.status === 'loaded' && current.data.totalCount > 0) {
+    <app-pagination
+      class="toolbar__end"
+      [page]="current.data.page"
+      [totalPages]="current.data.totalPages"
+      (pageChange)="page.set($event)"
+    />
+  }
+</div>
+
+<section class="table-card">
   @if (current.status === 'loading') {
-    <p class="muted" role="status">Cargando stock…</p>
+    <p class="empty" role="status">Cargando stock…</p>
   } @else if (current.status === 'error') {
-    <div class="alert alert--error" role="alert">{{ current.message }}</div>
+    <div class="table-card__body"><div class="alert alert--error" role="alert">{{ current.message }}</div></div>
   } @else if (current.data.items.length === 0) {
     <p class="empty">No hay productos que coincidan con la búsqueda.</p>
   } @else {
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>SKU</th>
-          <th>Producto</th>
-          <th class="num">Stock</th>
-          <th class="num">Precio unitario</th>
-          <th class="num">Valor</th>
-          <th>Estado</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (item of current.data.items; track item.productId) {
+    <div class="table-card__header">
+      <span>{{ resultsLabel(current.data.totalCount) }}</span>
+    </div>
+    <div class="table-card__body">
+      <table class="data-table">
+        <thead>
           <tr>
-            <td data-label="SKU"><code>{{ item.sku }}</code></td>
-            <td data-label="Producto">
-              <a [routerLink]="['/products', item.productId]">{{ item.name }}</a>
-            </td>
-            <td data-label="Stock" class="num">
-              @if (item.currentStock === 0) {
-                <span class="badge badge--danger">Sin stock</span>
-              } @else {
-                {{ item.currentStock }}
-              }
-            </td>
-            <td data-label="Precio unitario" class="num">{{ item.unitPrice | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
-            <td data-label="Valor" class="num">{{ item.stockValue | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
-            <td data-label="Estado">
-              <span class="badge" [class.badge--muted]="!item.isActive">{{ item.isActive ? 'Activo' : 'Inactivo' }}</span>
-            </td>
+            <th>SKU</th>
+            <th>Producto</th>
+            <th class="num">Stock</th>
+            <th class="num">Precio unitario</th>
+            <th class="num">Valor</th>
+            <th>Estado</th>
+            <th><span class="sr-only">Ver</span></th>
           </tr>
-        }
-      </tbody>
-    </table>
-
-    <app-pagination
-      [page]="current.data.page"
-      [totalPages]="current.data.totalPages"
-      [totalCount]="current.data.totalCount"
-      (pageChange)="page.set($event)"
-    />
+        </thead>
+        <tbody>
+          @for (item of current.data.items; track item.productId) {
+            <tr>
+              <td data-label="SKU"><code>{{ item.sku }}</code></td>
+              <td class="cell-title">
+                <a [routerLink]="['/products', item.productId]">{{ item.name }}</a>
+              </td>
+              <td data-label="Stock" class="num">
+                @if (item.currentStock === 0) {
+                  <span class="badge badge--danger">Sin stock</span>
+                } @else if (item.currentStock <= lowStockThreshold) {
+                  <span class="badge badge--warning">{{ item.currentStock }} · bajo</span>
+                } @else {
+                  {{ item.currentStock }}
+                }
+              </td>
+              <td data-label="Precio unitario" class="num">{{ item.unitPrice | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
+              <td data-label="Valor" class="num">{{ item.stockValue | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</td>
+              <td class="cell-badge">
+                <span class="badge" [class.badge--success]="item.isActive" [class.badge--muted]="!item.isActive">
+                  {{ item.isActive ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <td class="actions">
+                <a class="icon-button" [routerLink]="['/products', item.productId]" [attr.aria-label]="'Ver ' + item.name">
+                  <app-icon name="chevronRight" [size]="18" />
+                </a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
   }
 </section>
