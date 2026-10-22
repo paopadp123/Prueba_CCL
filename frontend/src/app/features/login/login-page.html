@@ -1,10 +1,17 @@
 <main class="login">
-  <section class="card login__card">
-    <h1>Inventario</h1>
-    <p class="muted">Ingresa con tu usuario para continuar.</p>
+  <app-theme-toggle class="login__theme" />
+  <section class="login__card">
+    <header class="login__header">
+      <span class="login__logo"><app-icon name="box" [size]="30" /></span>
+      <h1>Inventario</h1>
+      <p class="muted">Ingresa con tu usuario para continuar</p>
+    </header>
 
     @if (error(); as message) {
-      <div class="alert alert--error" role="alert">{{ message }}</div>
+      <div class="alert alert--error" role="alert">
+        <app-icon name="alert" [size]="18" />
+        <span>{{ message }}</span>
+      </div>
     }
 
     <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
@@ -18,7 +25,7 @@
 
       <div class="field">
         <label for="password">Contraseña</label>
-        <div class="field__group">
+        <div class="password">
           <input
             id="password"
             [type]="showPassword() ? 'text' : 'password'"
@@ -27,11 +34,12 @@
           />
           <button
             type="button"
-            class="button button--ghost"
+            class="password__toggle"
+            [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
             [attr.aria-pressed]="showPassword()"
             (click)="showPassword.set(!showPassword())"
           >
-            {{ showPassword() ? 'Ocultar' : 'Ver' }}
+            <app-icon [name]="showPassword() ? 'eyeOff' : 'eye'" [size]="20" />
           </button>
         </div>
         @if (form.controls.password.touched && form.controls.password.hasError('required')) {
@@ -39,7 +47,7 @@
         }
       </div>
 
-      <button type="submit" class="button button--primary button--block" [disabled]="loading()">
+      <button type="submit" class="button button--primary button--block login__submit" [disabled]="loading()">
         {{ loading() ? 'Ingresando…' : 'Ingresar' }}
       </button>
     </form>

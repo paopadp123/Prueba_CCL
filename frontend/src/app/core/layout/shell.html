@@ -1,18 +1,69 @@
 <header class="topbar">
-  <a class="brand" routerLink="/">Inventario</a>
+  <a class="brand" routerLink="/">
+    <span class="brand__logo"><app-icon name="box" [size]="18" /></span>
+    Inventario
+  </a>
 
   <nav class="nav" aria-label="Principal">
-    <a routerLink="/" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">Inicio</a>
+    @for (item of navItems; track item.path) {
+      <a [routerLink]="item.path" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: item.exact }">
+        {{ item.label }}
+      </a>
+    }
   </nav>
 
-  @if (auth.user(); as user) {
-    <div class="account">
-      <span class="account__name">{{ user.fullName }}</span>
-      <span class="badge">{{ user.role === 'Admin' ? 'Administrador' : 'Operador' }}</span>
-      <button type="button" class="button button--ghost" (click)="auth.logout()">Salir</button>
-    </div>
-  }
+  <app-user-menu class="user-menu" />
+
+  <button
+    type="button"
+    class="menu-toggle"
+    aria-controls="mobile-menu"
+    [attr.aria-expanded]="mobileMenuOpen()"
+    [attr.aria-label]="mobileMenuOpen() ? 'Cerrar menú' : 'Abrir menú'"
+    (click)="toggleMobileMenu()"
+  >
+    <app-icon [name]="mobileMenuOpen() ? 'close' : 'menu'" [size]="24" />
+  </button>
 </header>
+
+@if (mobileMenuOpen()) {
+  <div class="drawer-backdrop" (click)="mobileMenuOpen.set(false)"></div>
+  <nav id="mobile-menu" class="drawer" aria-label="Menú">
+    @if (auth.user(); as user) {
+      <div class="drawer__user">
+        <span class="avatar avatar--large">{{ initials() }}</span>
+        <div>
+          <strong>{{ user.fullName }}</strong>
+          <span class="badge">{{ roleLabel() }}</span>
+          @if (auth.expiresAt(); as expiresAt) {
+            <small class="muted">Sesión hasta las {{ expiresAt | date: 'shortTime' }}</small>
+          }
+        </div>
+      </div>
+    }
+
+    @for (item of navItems; track item.path) {
+      <a
+        class="drawer__link"
+        [routerLink]="item.path"
+        routerLinkActive="is-active"
+        [routerLinkActiveOptions]="{ exact: item.exact }"
+      >
+        <app-icon [name]="item.icon" />
+        {{ item.label }}
+      </a>
+    }
+
+    <div class="drawer__divider"></div>
+    <span class="menu-section__title">Tema</span>
+    <app-theme-picker />
+
+    <button type="button" class="drawer__link drawer__logout" (click)="auth.logout()">
+      <app-icon name="logout" />
+      Cerrar sesión
+    </button>
+  </nav>
+}
 
 <main class="content">
   <router-outlet />

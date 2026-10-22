@@ -67,6 +67,14 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Errores que el interceptor ya muestra como aviso global (sin conexión, permisos,
+ * demasiadas solicitudes y fallos del servidor); las pantallas no deben repetirlos.
+ */
+export function isGlobalError(status: number): boolean {
+  return status === 0 || status === 403 || status === 429 || status >= 500;
+}
+
 function isProblemDetails(body: unknown): body is ProblemDetails {
   return typeof body === 'object' && body !== null && ('title' in body || 'detail' in body);
 }

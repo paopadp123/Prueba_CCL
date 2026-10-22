@@ -2,17 +2,19 @@ import { provideZonelessChangeDetection, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Route, Router, UrlSegment, UrlTree } from '@angular/router';
 
-import { authGuard, guestGuard } from './auth.guards';
+import { adminGuard, authGuard, guestGuard } from './auth.guards';
 import { AuthService } from './auth.service';
 
 describe('guards de autenticación', () => {
   const isAuthenticated = signal(false);
+  const isAdmin = signal(false);
   const route: Route = {};
 
   beforeEach(() => {
     isAuthenticated.set(false);
+    isAdmin.set(false);
     TestBed.configureTestingModule({
-      providers: [provideZonelessChangeDetection(), { provide: AuthService, useValue: { isAuthenticated } }],
+      providers: [provideZonelessChangeDetection(), { provide: AuthService, useValue: { isAuthenticated, isAdmin } }],
     });
   });
 
@@ -31,6 +33,18 @@ describe('guards de autenticación', () => {
     const result = run(authGuard, ['products']) as UrlTree;
 
     expect(TestBed.inject(Router).serializeUrl(result)).toBe('/login?returnUrl=%2Fproducts');
+  });
+
+  it('adminGuard deja pasar a Admin', () => {
+    isAdmin.set(true);
+
+    expect(run(adminGuard, ['products', 'new'])).toBeTrue();
+  });
+
+  it('adminGuard devuelve a un operador al listado de productos', () => {
+    const result = run(adminGuard, ['products', 'new']) as UrlTree;
+
+    expect(TestBed.inject(Router).serializeUrl(result)).toBe('/products');
   });
 
   it('guestGuard con sesión manda al inicio', () => {
