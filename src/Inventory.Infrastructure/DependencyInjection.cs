@@ -1,7 +1,9 @@
 using Inventory.Application.Abstractions;
+using Inventory.Infrastructure.Health;
 using Inventory.Infrastructure.Persistence;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Npgsql;
 
 namespace Inventory.Infrastructure;
@@ -36,4 +38,14 @@ public static class DependencyInjection
 
         return services;
     }
+
+    /// <summary>
+    /// Agrega el health check de PostgreSQL con el nombre "database".
+    /// </summary>
+    public static IHealthChecksBuilder AddInventoryDatabaseCheck(this IHealthChecksBuilder builder) =>
+        builder.AddCheck<DatabaseHealthCheck>(
+            "database",
+            failureStatus: HealthStatus.Unhealthy,
+            tags: ["ready"],
+            timeout: TimeSpan.FromSeconds(3));
 }
