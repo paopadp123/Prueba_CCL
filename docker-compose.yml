@@ -1,0 +1,60 @@
+# Levanta todo el sistema con un solo comando:
+#   docker compose up --build
+#
+#   Aplicación web:  http://localhost:4200   (usuarios: admin / Admin123*, operador / Operador123*)
+#   API y Swagger:   http://localhost:5197/swagger
+#   PostgreSQL:      localhost:5433          (usuario postgres)
+#
+# Las claves de abajo son SOLO para esta demo local. Para cambiarlas, crea un archivo .env
+# (ver .env.example); nunca uses estos valores en un ambiente real.
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: inventory
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    # Los scripts 01..04 de database/ se ejecutan en orden la primera vez que se crea el volumen.
+    volumes:
+      - ./database:/docker-entrypoint-initdb.d:ro
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d inventory"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      dockerfile: src/Inventory.Api/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__Inventory: Host=db;Port=5432;Database=inventory;Username=postgres;Password=${POSTGRES_PASSWORD:-postgres}
+      Jwt__SigningKey: ${JWT_SIGNING_KEY:-clave-solo-para-la-demo-local-no-usar-en-produccion-0123456789}
+      Swagger__Enabled: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "5197:8080"
+
+  web:
+    build:
+      context: ./frontend
+    depends_on:
+      - api
+    ports:
+      - "4200:80"
+    # Comprueba la cadena completa: nginx → API → base de datos.
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/health | grep -q Healthy"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+volumes:
+  db-data:

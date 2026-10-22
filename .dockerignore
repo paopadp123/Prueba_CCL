@@ -1,0 +1,14 @@
+# Contexto de la imagen de la API: solo hace falta el código de src/.
+**/bin/
+**/obj/
+**/logs/
+**/node_modules/
+.git/
+.github/
+.vs/
+.vscode/
+frontend/
+tests/
+docs/
+*.md
+.env
