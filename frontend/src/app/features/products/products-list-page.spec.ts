@@ -67,6 +67,7 @@ describe('ProductsListPage', () => {
     const element = await render(false);
 
     expect(element.textContent).not.toContain('Nuevo producto');
+    expect(element.querySelector('[aria-label="Editar Portátil"]')).toBeNull();
     expect(element.textContent).not.toContain('Desactivar');
   });
 
@@ -74,7 +75,7 @@ describe('ProductsListPage', () => {
     const element = await render(true);
 
     expect(element.textContent).toContain('Nuevo producto');
-    expect(element.textContent).toContain('Editar');
+    expect(element.querySelector('[aria-label="Editar Portátil"]')).not.toBeNull();
     expect(element.textContent).toContain('Desactivar');
   });
 });
