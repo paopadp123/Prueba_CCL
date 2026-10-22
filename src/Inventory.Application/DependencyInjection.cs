@@ -1,4 +1,5 @@
 using Inventory.Application.Auth;
+using Inventory.Application.Products;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Inventory.Application;
@@ -14,6 +15,7 @@ public static class DependencyInjection
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddScoped<LoginService>();
+        services.AddScoped<ProductService>();
         return services;
     }
 }
