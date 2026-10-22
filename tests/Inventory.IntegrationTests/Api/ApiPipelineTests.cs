@@ -56,13 +56,13 @@ public sealed class ApiPipelineTests(DatabaseFixture database) : IDisposable
     }
 
     [Fact]
-    public async Task UnknownRoute_ReturnsProblemDetailsWithGeneratedCorrelationId()
+    public async Task AnonymousRequestToUnknownRoute_Returns401ProblemDetailsWithGeneratedCorrelationId()
     {
         using HttpResponseMessage response = await factory.CreateClient().GetAsync(new Uri("/no-existe", UriKind.Relative));
         using JsonDocument body = await ReadJsonAsync(response);
 
         string correlationId = response.Headers.GetValues(CorrelationId.HeaderName).Single();
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         Assert.Equal(ProblemJson, response.Content.Headers.ContentType?.MediaType);
         Assert.Equal(correlationId, body.RootElement.GetProperty("correlationId").GetString());
     }
@@ -100,6 +100,10 @@ public sealed class ApiPipelineTests(DatabaseFixture database) : IDisposable
 
         JsonElement scheme = body.RootElement.GetProperty("components").GetProperty("securitySchemes").GetProperty("Bearer");
         Assert.Equal("bearer", scheme.GetProperty("scheme").GetString());
+
+        JsonElement paths = body.RootElement.GetProperty("paths");
+        Assert.True(paths.GetProperty("/api/auth/me").GetProperty("get").TryGetProperty("security", out _));
+        Assert.False(paths.GetProperty("/api/auth/login").GetProperty("post").TryGetProperty("security", out _));
     }
 
     public void Dispose() => factory.Dispose();

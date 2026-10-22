@@ -1,4 +1,5 @@
 using Inventory.Domain.Exceptions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Inventory.IntegrationTests.Api;
@@ -7,6 +8,7 @@ namespace Inventory.IntegrationTests.Api;
 /// Endpoint solo para pruebas: lanza excepciones para verificar el manejador global.
 /// </summary>
 [ApiController]
+[AllowAnonymous]
 [Route("test/errors")]
 public sealed class ErrorsTestController : ControllerBase
 {
