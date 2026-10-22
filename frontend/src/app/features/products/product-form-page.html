@@ -1,0 +1,81 @@
+<header class="page-header">
+  <div>
+    <a class="back-link" routerLink="/products">← Productos</a>
+    <h1>{{ isEdit() ? 'Editar producto' : 'Nuevo producto' }}</h1>
+  </div>
+</header>
+
+@if (loading()) {
+  <p class="muted" role="status">Cargando producto…</p>
+} @else if (loadError(); as message) {
+  <div class="alert alert--error" role="alert">{{ message }}</div>
+} @else {
+  <section class="card form-card">
+    @if (formError(); as message) {
+      <div class="alert alert--error" role="alert">{{ message }}</div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="field">
+        <label for="sku">SKU</label>
+        <input id="sku" type="text" formControlName="sku" maxlength="30" autocomplete="off" />
+        @let sku = form.controls.sku;
+        @if (sku.touched && sku.errors; as errors) {
+          @if (errors['required']) {
+            <small class="field__error">Ingresa el SKU.</small>
+          } @else if (errors['pattern']) {
+            <small class="field__error">De 3 a 30 caracteres: letras, números y guiones; no puede empezar con guion.</small>
+          } @else if (errors['server']) {
+            <small class="field__error">{{ errors['server'] }}</small>
+          }
+        } @else if (isEdit()) {
+          <small class="muted">El SKU no se puede cambiar.</small>
+        } @else {
+          <small class="muted">Código único del producto, p. ej. LAP-001. Se guarda en mayúsculas.</small>
+        }
+      </div>
+
+      <div class="field">
+        <label for="name">Nombre</label>
+        <input id="name" type="text" formControlName="name" [maxlength]="limits.nameMaxLength" />
+        @let name = form.controls.name;
+        @if (name.touched && name.errors; as errors) {
+          @if (errors['required']) {
+            <small class="field__error">Ingresa el nombre.</small>
+          } @else if (errors['server']) {
+            <small class="field__error">{{ errors['server'] }}</small>
+          }
+        }
+      </div>
+
+      <div class="field">
+        <label for="description">Descripción <span class="muted">(opcional)</span></label>
+        <textarea id="description" rows="3" formControlName="description" [maxlength]="limits.descriptionMaxLength"></textarea>
+      </div>
+
+      <div class="field">
+        <label for="unitPrice">Precio unitario</label>
+        <input id="unitPrice" type="number" inputmode="decimal" min="0" step="0.01" formControlName="unitPrice" />
+        @let price = form.controls.unitPrice;
+        @if (price.touched && price.errors; as errors) {
+          @if (errors['required']) {
+            <small class="field__error">Ingresa el precio.</small>
+          } @else if (errors['min']) {
+            <small class="field__error">El precio no puede ser negativo.</small>
+          } @else if (errors['max']) {
+            <small class="field__error">El precio es demasiado alto.</small>
+          } @else if (errors['server']) {
+            <small class="field__error">{{ errors['server'] }}</small>
+          }
+        }
+      </div>
+
+      <div class="form-actions">
+        <a class="button button--ghost" routerLink="/products">Cancelar</a>
+        <button type="submit" class="button button--primary" [disabled]="saving()">
+          {{ saving() ? 'Guardando…' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  </section>
+}

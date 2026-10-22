@@ -1,0 +1,205 @@
+@if (auth.user(); as user) {
+  <header class="page-header">
+    <div>
+      <h1>Hola, {{ user.fullName }}</h1>
+      <p class="muted">
+        @if (auth.isAdmin()) {
+          Como administrador puedes gestionar el catálogo de productos y registrar movimientos.
+        } @else {
+          Como operador puedes consultar productos y stock, y registrar entradas y salidas.
+        }
+      </p>
+    </div>
+  </header>
+}
+
+<section class="tiles" aria-label="Accesos directos">
+  <a class="card tile" routerLink="/products">
+    <app-icon name="box" [size]="26" />
+    <strong>Productos</strong>
+    <span class="muted">{{ auth.isAdmin() ? 'Crear, editar y activar productos.' : 'Consultar el catálogo.' }}</span>
+  </a>
+  <a class="card tile" routerLink="/movements/new" [queryParams]="{ type: 'Entry' }">
+    <app-icon name="entry" [size]="26" />
+    <strong>Registrar entrada</strong>
+    <span class="muted">Ingreso de unidades a bodega.</span>
+  </a>
+  <a class="card tile" routerLink="/movements/new" [queryParams]="{ type: 'Exit' }">
+    <app-icon name="exit" [size]="26" />
+    <strong>Registrar salida</strong>
+    <span class="muted">Despacho; no permite dejar stock negativo.</span>
+  </a>
+  <a class="card tile" routerLink="/stock">
+    <app-icon name="chart" [size]="26" />
+    <strong>Stock</strong>
+    <span class="muted">Unidades disponibles y valor del inventario.</span>
+  </a>
+  <a class="card tile" routerLink="/movements">
+    <app-icon name="history" [size]="26" />
+    <strong>Historial</strong>
+    <span class="muted">Todas las entradas y salidas con su usuario.</span>
+  </a>
+</section>
+
+@let current = state();
+@if (current.status === 'loading') {
+  <p class="empty" role="status">Cargando el tablero…</p>
+} @else if (current.status === 'error') {
+  <div class="alert alert--error" role="alert">{{ current.message }}</div>
+} @else {
+  @if (partial()) {
+    <p class="alert alert--warning">
+      <app-icon name="alert" [size]="18" />
+      El tablero se calcula con los 200 productos y movimientos más recientes; los totales pueden ser parciales.
+    </p>
+  }
+
+  <section class="dashboard">
+    <article class="card panel panel--warm">
+      <h2>Productos con stock bajo</h2>
+      <p class="kpi">{{ lowStock().length }} <small>{{ lowStock().length === 1 ? 'producto' : 'productos' }}</small></p>
+      @if (lowStock().length === 0) {
+        <p class="muted">Todos los productos tienen más de {{ lowStockThreshold }} unidades.</p>
+      } @else {
+        <ul class="bars" aria-label="Unidades por producto con stock bajo">
+          @for (item of lowStock().slice(0, 5); track item.productId) {
+            <li>
+              <a class="bars__label" [routerLink]="['/products', item.productId]">{{ item.name }}</a>
+              <span class="bars__track">
+                <span
+                  class="bars__fill"
+                  [class.bars__fill--empty]="item.currentStock === 0"
+                  [style.width.%]="(item.currentStock / lowStockMax()) * 100"
+                ></span>
+              </span>
+              <span class="bars__value">{{ item.currentStock }}</span>
+            </li>
+          }
+        </ul>
+      }
+      @if (outOfStock().length > 0) {
+        <span class="badge badge--danger"><app-icon name="alert" [size]="14" /> {{ outOfStock().length }} sin stock</span>
+      } @else {
+        <span class="muted note">Umbral: {{ lowStockThreshold }} unidades</span>
+      }
+    </article>
+
+    <article class="card panel panel--cool">
+      <h2>Valor total del inventario</h2>
+      <p class="kpi">{{ totalValue() | currency: 'COP' : 'symbol-narrow' : '1.0-0' }} <small>COP</small></p>
+      @if (slices().length > 0) {
+        <app-donut-chart [slices]="slices()" />
+      } @else {
+        <p class="muted">Aún no hay unidades en inventario.</p>
+      }
+    </article>
+
+    <article class="card panel panel--fresh">
+      <h2>Movimientos de los últimos 7 días</h2>
+      <app-daily-movements-chart [days]="week()" />
+      <div class="panel__footer">
+        <span>
+          <i class="swatch" style="background: var(--series-1)"></i><strong>{{ weekEntries() }}</strong> entradas
+          <i class="swatch" style="background: var(--series-2)"></i><strong>{{ weekExits() }}</strong> salidas
+        </span>
+        <a routerLink="/movements">Ver historial</a>
+      </div>
+    </article>
+
+    <article class="card panel">
+      <h2>Resumen</h2>
+      <dl class="summary">
+        <div>
+          <dt>Productos activos</dt>
+          <dd>{{ productCount() }}</dd>
+        </div>
+        <div>
+          <dt>Unidades en bodega</dt>
+          <dd>{{ totalUnits() }}</dd>
+        </div>
+        <div>
+          <dt>Sin stock</dt>
+          <dd [class.text-danger]="outOfStock().length > 0">{{ outOfStock().length }}</dd>
+        </div>
+      </dl>
+    </article>
+  </section>
+
+  <section class="dashboard dashboard--bottom">
+    <article class="table-card">
+      <div class="table-card__header">
+        <h2>Últimos movimientos</h2>
+        <a routerLink="/movements">Ver todos</a>
+      </div>
+      <div class="table-card__body">
+        @if (latest().length === 0) {
+          <p class="empty">Todavía no hay movimientos.</p>
+        } @else {
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Tipo</th>
+                <th>Producto</th>
+                <th class="num">Cantidad</th>
+                <th>Usuario</th>
+                <th>Fecha</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (movement of latest(); track movement.movementId) {
+                <tr>
+                  <td class="cell-badge">
+                    <span
+                      class="badge"
+                      [class.badge--warning]="movement.type === 'Exit'"
+                      [class.badge--success]="movement.type === 'Entry'"
+                    >
+                      <app-icon [name]="movement.type === 'Exit' ? 'exit' : 'entry'" [size]="14" />
+                      {{ labels[movement.type] }}
+                    </span>
+                  </td>
+                  <td class="cell-title">
+                    <a [routerLink]="['/products', movement.productId]">{{ movement.productName }}</a>
+                  </td>
+                  <td data-label="Cantidad" class="num">
+                    {{ movement.type === 'Exit' ? '−' : '+' }}{{ movement.quantity }}
+                  </td>
+                  <td data-label="Usuario">{{ movement.username }}</td>
+                  <td data-label="Fecha">{{ movement.createdAt | date: 'd MMM, h:mm a' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    </article>
+
+    <article class="card panel">
+      <h2>Alertas</h2>
+      @if (lowStock().length === 0) {
+        <p class="muted">No hay alertas de stock.</p>
+      } @else {
+        <ul class="alerts">
+          @for (item of lowStock().slice(0, 5); track item.productId) {
+            <li>
+              <app-icon name="alert" [size]="18" [class]="item.currentStock === 0 ? 'text-danger' : 'warning'" />
+              <div>
+                <strong>{{ item.name }}</strong>
+                <span class="muted">
+                  {{ item.currentStock === 0 ? 'Sin stock' : 'Quedan ' + item.currentStock + ' unidades' }}
+                </span>
+              </div>
+              <a
+                class="button button--ghost button--small"
+                routerLink="/movements/new"
+                [queryParams]="{ type: 'Entry', productId: item.productId }"
+              >
+                Reponer
+              </a>
+            </li>
+          }
+        </ul>
+      }
+    </article>
+  </section>
+}

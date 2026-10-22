@@ -1,0 +1,84 @@
+<header class="page-header">
+  <div>
+    <a class="back-link" routerLink="/movements">← Movimientos</a>
+    <h1>Registrar movimiento</h1>
+  </div>
+</header>
+
+<section class="card form-card">
+  @if (formError(); as message) {
+    <div class="alert alert--error" role="alert">{{ message }}</div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <fieldset class="segmented">
+      <legend>Tipo de movimiento</legend>
+      <label>
+        <input type="radio" formControlName="type" value="Entry" />
+        <span>{{ labels.Entry }}</span>
+      </label>
+      <label>
+        <input type="radio" formControlName="type" value="Exit" />
+        <span>{{ labels.Exit }}</span>
+      </label>
+    </fieldset>
+
+    <div class="field">
+      <label for="productId">Producto</label>
+      @let options = productOptions();
+      @if (options.status === 'loading') {
+        <select id="productId" disabled>
+          <option>Cargando productos…</option>
+        </select>
+      } @else if (options.status === 'error') {
+        <div class="alert alert--error" role="alert">{{ options.message }}</div>
+      } @else {
+        <select id="productId" formControlName="productId">
+          <option [ngValue]="null" disabled>Selecciona un producto</option>
+          @for (product of options.data.items; track product.id) {
+            <option [ngValue]="product.id">{{ product.name }} · {{ product.sku }}</option>
+          }
+        </select>
+      }
+      @let product = form.controls.productId;
+      @if (product.touched && product.errors; as errors) {
+        @if (errors['required']) {
+          <small class="field__error">Selecciona un producto.</small>
+        } @else if (errors['server']) {
+          <small class="field__error">{{ errors['server'] }}</small>
+        }
+      } @else if (availableStock() !== null) {
+        <small class="muted">Stock actual: <strong>{{ availableStock() }}</strong></small>
+      }
+    </div>
+
+    <div class="field">
+      <label for="quantity">Cantidad</label>
+      <input id="quantity" type="number" inputmode="numeric" min="1" step="1" formControlName="quantity" />
+      @let quantity = form.controls.quantity;
+      @if (quantity.touched && quantity.errors; as errors) {
+        @if (errors['required']) {
+          <small class="field__error">Ingresa la cantidad.</small>
+        } @else if (errors['min'] || errors['pattern']) {
+          <small class="field__error">La cantidad debe ser un número entero mayor que cero.</small>
+        } @else if (errors['server']) {
+          <small class="field__error">{{ errors['server'] }}</small>
+        }
+      } @else if (exceedsStock()) {
+        <small class="field__warning">La cantidad supera el stock actual; la salida será rechazada.</small>
+      }
+    </div>
+
+    <div class="field">
+      <label for="reason">Motivo <span class="muted">(opcional)</span></label>
+      <input id="reason" type="text" formControlName="reason" [maxlength]="reasonMaxLength" placeholder="Compra, venta, ajuste…" />
+    </div>
+
+    <div class="form-actions">
+      <a class="button button--ghost" routerLink="/movements">Volver</a>
+      <button type="submit" class="button button--primary" [disabled]="saving()">
+        {{ saving() ? 'Registrando…' : 'Registrar ' + labels[formValue().type].toLowerCase() }}
+      </button>
+    </div>
+  </form>
+</section>
