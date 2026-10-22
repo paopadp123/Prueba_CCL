@@ -1,0 +1,19 @@
+<header class="topbar">
+  <a class="brand" routerLink="/">Inventario</a>
+
+  <nav class="nav" aria-label="Principal">
+    <a routerLink="/" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">Inicio</a>
+  </nav>
+
+  @if (auth.user(); as user) {
+    <div class="account">
+      <span class="account__name">{{ user.fullName }}</span>
+      <span class="badge">{{ user.role === 'Admin' ? 'Administrador' : 'Operador' }}</span>
+      <button type="button" class="button button--ghost" (click)="auth.logout()">Salir</button>
+    </div>
+  }
+</header>
+
+<main class="content">
+  <router-outlet />
+</main>
