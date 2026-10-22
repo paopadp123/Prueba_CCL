@@ -1,4 +1,7 @@
 using Inventory.Application.Auth;
+using Inventory.Application.Movements;
+using Inventory.Application.Products;
+using Inventory.Application.Stock;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Inventory.Application;
@@ -14,6 +17,9 @@ public static class DependencyInjection
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddScoped<LoginService>();
+        services.AddScoped<ProductService>();
+        services.AddScoped<MovementService>();
+        services.AddScoped<StockService>();
         return services;
     }
 }

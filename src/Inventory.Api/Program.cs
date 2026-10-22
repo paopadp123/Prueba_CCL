@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Inventory.Api.Errors;
 using Inventory.Api.Health;
 using Inventory.Api.Observability;
@@ -34,7 +35,10 @@ builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy
     .AllowAnyMethod()
     .WithExposedHeaders(CorrelationId.HeaderName)));
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+builder.Services.ConfigureHttpJsonOptions(options =>
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddOpenApi(options =>
 {
     options.AddDocumentTransformer<BearerSecurityTransformer>();
