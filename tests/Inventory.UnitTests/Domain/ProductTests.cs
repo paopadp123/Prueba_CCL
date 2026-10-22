@@ -66,6 +66,19 @@ public class ProductTests
     }
 
     [Fact]
+    public void Create_WithPriceAboveColumnLimit_ThrowsDomainValidationException()
+    {
+        Assert.Throws<DomainValidationException>(
+            () => Product.Create(DefaultSku, "Portátil", null, Product.UnitPriceMax + 1m));
+    }
+
+    [Fact]
+    public void Create_WithMaximumPrice_Succeeds()
+    {
+        Assert.Equal(Product.UnitPriceMax, Product.Create(DefaultSku, "Portátil", null, Product.UnitPriceMax).UnitPrice);
+    }
+
+    [Fact]
     public void Create_WithMoreThanTwoDecimals_ThrowsDomainValidationException()
     {
         Assert.Throws<DomainValidationException>(() => Product.Create(DefaultSku, "Portátil", null, 10.123m));
