@@ -1,4 +1,5 @@
 using Inventory.Application.Auth;
+using Inventory.Application.Movements;
 using Inventory.Application.Products;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -16,6 +17,7 @@ public static class DependencyInjection
     {
         services.AddScoped<LoginService>();
         services.AddScoped<ProductService>();
+        services.AddScoped<MovementService>();
         return services;
     }
 }
