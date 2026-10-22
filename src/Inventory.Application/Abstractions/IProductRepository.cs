@@ -1,3 +1,4 @@
+using Inventory.Application.Models;
 using Inventory.Domain.Entities;
 
 namespace Inventory.Application.Abstractions;
@@ -11,6 +12,12 @@ public interface IProductRepository
     /// Obtiene un producto por su identificador, o nulo si no existe.
     /// </summary>
     Task<Product?> GetByIdAsync(long id, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Lista productos paginados ordenados por nombre, filtrando opcionalmente por SKU o nombre.
+    /// </summary>
+    Task<PagedResult<Product>> ListAsync(
+        string? search, bool includeInactive, PageRequest page, CancellationToken cancellationToken);
 
     /// <summary>
     /// Guarda un producto nuevo y lo devuelve con su identificador y fechas.

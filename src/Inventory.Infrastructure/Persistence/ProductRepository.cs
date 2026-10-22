@@ -1,5 +1,6 @@
 using Dapper;
 using Inventory.Application.Abstractions;
+using Inventory.Application.Models;
 using Inventory.Domain.Entities;
 using Inventory.Domain.Exceptions;
 using Npgsql;
@@ -28,6 +29,32 @@ internal sealed class ProductRepository(NpgsqlDataSource dataSource, IUserContex
             cancellationToken: cancellationToken));
 
         return row?.ToDomain();
+    }
+
+    /// <inheritdoc />
+    public async Task<PagedResult<Product>> ListAsync(
+        string? search, bool includeInactive, PageRequest page, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(page);
+
+        await using NpgsqlConnection connection = await dataSource.OpenConnectionAsync(cancellationToken);
+
+        List<ProductPageRow> rows = (await connection.QueryAsync<ProductPageRow>(new CommandDefinition(
+            $"""
+            SELECT {Columns}, count(*) OVER () AS TotalCount
+            FROM inventory.products
+            WHERE (@IncludeInactive OR is_active)
+              AND (CAST(@Search AS TEXT) IS NULL
+                   OR sku ILIKE '%' || @Search || '%'
+                   OR name ILIKE '%' || @Search || '%')
+            ORDER BY name, id
+            LIMIT @Limit OFFSET @Offset
+            """,
+            new { IncludeInactive = includeInactive, Search = SqlSearch.Normalize(search), Limit = page.PageSize, page.Offset },
+            cancellationToken: cancellationToken))).ToList();
+
+        List<Product> items = [.. rows.Select(row => row.Product.ToDomain())];
+        return new PagedResult<Product>(items, page.Page, page.PageSize, rows.FirstOrDefault()?.TotalCount ?? 0);
     }
 
     /// <inheritdoc />
@@ -97,5 +124,20 @@ internal sealed class ProductRepository(NpgsqlDataSource dataSource, IUserContex
         public Product ToDomain() => Product.Rehydrate(
             Id, Sku, Name, Description, UnitPrice, CurrentStock, IsActive,
             DbTime.ToOffset(CreatedAt), DbTime.ToOffset(UpdatedAt));
+    }
+
+    private sealed record ProductPageRow(
+        long Id,
+        string Sku,
+        string Name,
+        string? Description,
+        decimal UnitPrice,
+        int CurrentStock,
+        bool IsActive,
+        DateTime CreatedAt,
+        DateTime UpdatedAt,
+        long TotalCount)
+    {
+        public ProductRow Product => new(Id, Sku, Name, Description, UnitPrice, CurrentStock, IsActive, CreatedAt, UpdatedAt);
     }
 }

@@ -19,6 +19,11 @@ public sealed class Product
     /// </summary>
     public const int DescriptionMaxLength = 500;
 
+    /// <summary>
+    /// Precio máximo admitido por la columna NUMERIC(12,2).
+    /// </summary>
+    public const decimal UnitPriceMax = 9_999_999_999.99m;
+
     private Product(Sku sku, string name, string? description, decimal unitPrice)
     {
         Sku = sku;
@@ -184,6 +189,11 @@ public sealed class Product
         if (unitPrice < 0)
         {
             throw new DomainValidationException("El precio no puede ser negativo.");
+        }
+
+        if (unitPrice > UnitPriceMax)
+        {
+            throw new DomainValidationException($"El precio no puede superar {UnitPriceMax:N2}.");
         }
 
         if (decimal.Round(unitPrice, 2) != unitPrice)

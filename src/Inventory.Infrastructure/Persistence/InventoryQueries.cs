@@ -25,7 +25,7 @@ internal sealed class InventoryQueries(NpgsqlDataSource dataSource) : IInventory
                    updated_at AS UpdatedAt, total_count AS TotalCount
             FROM inventory.fn_get_stock(@Search, @OnlyActive, @Limit, @Offset)
             """,
-            new { Search = NormalizeSearch(search), OnlyActive = onlyActive, Limit = page.PageSize, page.Offset },
+            new { Search = SqlSearch.Normalize(search), OnlyActive = onlyActive, Limit = page.PageSize, page.Offset },
             cancellationToken: cancellationToken))).ToList();
 
         List<StockItem> items = rows
@@ -65,9 +65,6 @@ internal sealed class InventoryQueries(NpgsqlDataSource dataSource) : IInventory
         return new PagedResult<MovementHistoryItem>(
             items, page.Page, page.PageSize, rows.FirstOrDefault()?.TotalCount ?? 0);
     }
-
-    private static string? NormalizeSearch(string? search) =>
-        string.IsNullOrWhiteSpace(search) ? null : search.Trim();
 
     private sealed record StockRow(
         long ProductId,
