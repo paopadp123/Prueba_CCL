@@ -12,18 +12,18 @@ public class PostgresErrorMapperTests
     [Fact]
     public void Map_ProductNotFound_ReturnsProductNotFoundException()
     {
-        var result = PostgresErrorMapper.Map(Error("IN001"), productId: 7);
+        Exception result = PostgresErrorMapper.Map(Error("IN001"), productId: 7);
 
-        var exception = Assert.IsType<ProductNotFoundException>(result);
+        ProductNotFoundException exception = Assert.IsType<ProductNotFoundException>(result);
         Assert.Equal(7, exception.ProductId);
     }
 
     [Fact]
     public void Map_InsufficientStock_ReadsAvailableAndRequestedFromDetail()
     {
-        var result = PostgresErrorMapper.Map(Error("IN002", detail: "available=2;requested=8"), productId: 7);
+        Exception result = PostgresErrorMapper.Map(Error("IN002", detail: "available=2;requested=8"), productId: 7);
 
-        var exception = Assert.IsType<InsufficientStockException>(result);
+        InsufficientStockException exception = Assert.IsType<InsufficientStockException>(result);
         Assert.Equal(2, exception.Available);
         Assert.Equal(8, exception.Requested);
     }
@@ -37,9 +37,9 @@ public class PostgresErrorMapperTests
     [Fact]
     public void Map_UserNotAvailable_ReturnsUserNotAvailableException()
     {
-        var result = PostgresErrorMapper.Map(Error("IN004"), userId: 3);
+        Exception result = PostgresErrorMapper.Map(Error("IN004"), userId: 3);
 
-        var exception = Assert.IsType<UserNotAvailableException>(result);
+        UserNotAvailableException exception = Assert.IsType<UserNotAvailableException>(result);
         Assert.Equal(3, exception.UserId);
     }
 
@@ -52,9 +52,9 @@ public class PostgresErrorMapperTests
     [Fact]
     public void Map_UniqueViolationOnSku_ReturnsDuplicateSkuException()
     {
-        var result = PostgresErrorMapper.Map(Error("23505", constraint: "ux_products_sku"), sku: "LAP-001");
+        Exception result = PostgresErrorMapper.Map(Error("23505", constraint: "ux_products_sku"), sku: "LAP-001");
 
-        var exception = Assert.IsType<DuplicateSkuException>(result);
+        DuplicateSkuException exception = Assert.IsType<DuplicateSkuException>(result);
         Assert.Equal("LAP-001", exception.Sku);
     }
 
@@ -63,7 +63,7 @@ public class PostgresErrorMapperTests
     [InlineData("42P01", null)]
     public void Map_UnknownError_ReturnsOriginalException(string sqlState, string? constraint)
     {
-        var error = Error(sqlState, constraint: constraint);
+        PostgresException error = Error(sqlState, constraint: constraint);
 
         Assert.Same(error, PostgresErrorMapper.Map(error));
     }

@@ -20,9 +20,9 @@ internal sealed class ProductRepository(NpgsqlDataSource dataSource, IUserContex
     /// <inheritdoc />
     public async Task<Product?> GetByIdAsync(long id, CancellationToken cancellationToken)
     {
-        await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
+        await using NpgsqlConnection connection = await dataSource.OpenConnectionAsync(cancellationToken);
 
-        var row = await connection.QuerySingleOrDefaultAsync<ProductRow>(new CommandDefinition(
+        ProductRow? row = await connection.QuerySingleOrDefaultAsync<ProductRow>(new CommandDefinition(
             $"SELECT {Columns} FROM inventory.products WHERE id = @Id",
             new { Id = id },
             cancellationToken: cancellationToken));
@@ -35,12 +35,12 @@ internal sealed class ProductRepository(NpgsqlDataSource dataSource, IUserContex
     {
         ArgumentNullException.ThrowIfNull(product);
 
-        await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
-        await using var transaction = await AuditSession.BeginAsync(connection, userContext, cancellationToken);
+        await using NpgsqlConnection connection = await dataSource.OpenConnectionAsync(cancellationToken);
+        await using NpgsqlTransaction transaction = await AuditSession.BeginAsync(connection, userContext, cancellationToken);
 
         try
         {
-            var row = await connection.QuerySingleAsync<ProductRow>(new CommandDefinition(
+            ProductRow row = await connection.QuerySingleAsync<ProductRow>(new CommandDefinition(
                 $"""
                 INSERT INTO inventory.products (sku, name, description, unit_price, is_active)
                 VALUES (@Sku, @Name, @Description, @UnitPrice, @IsActive)
@@ -64,10 +64,10 @@ internal sealed class ProductRepository(NpgsqlDataSource dataSource, IUserContex
     {
         ArgumentNullException.ThrowIfNull(product);
 
-        await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
-        await using var transaction = await AuditSession.BeginAsync(connection, userContext, cancellationToken);
+        await using NpgsqlConnection connection = await dataSource.OpenConnectionAsync(cancellationToken);
+        await using NpgsqlTransaction transaction = await AuditSession.BeginAsync(connection, userContext, cancellationToken);
 
-        var row = await connection.QuerySingleOrDefaultAsync<ProductRow>(new CommandDefinition(
+        ProductRow row = await connection.QuerySingleOrDefaultAsync<ProductRow>(new CommandDefinition(
             $"""
             UPDATE inventory.products
             SET name = @Name, description = @Description, unit_price = @UnitPrice, is_active = @IsActive

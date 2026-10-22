@@ -19,8 +19,8 @@ public sealed class ApiPipelineTests(DatabaseFixture database) : IDisposable
     [Fact]
     public async Task DomainError_ReturnsProblemDetailsWithCodeAndValues()
     {
-        using var response = await factory.CreateClient().GetAsync(new Uri("/test/errors/stock", UriKind.Relative));
-        using var body = await ReadJsonAsync(response);
+        using HttpResponseMessage response = await factory.CreateClient().GetAsync(new Uri("/test/errors/stock", UriKind.Relative));
+        using JsonDocument body = await ReadJsonAsync(response);
 
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         Assert.Equal(ProblemJson, response.Content.Headers.ContentType?.MediaType);
@@ -33,8 +33,8 @@ public sealed class ApiPipelineTests(DatabaseFixture database) : IDisposable
     [Fact]
     public async Task UnexpectedError_Returns500WithoutInternalDetails()
     {
-        using var response = await factory.CreateClient().GetAsync(new Uri("/test/errors/boom", UriKind.Relative));
-        var text = await response.Content.ReadAsStringAsync();
+        using HttpResponseMessage response = await factory.CreateClient().GetAsync(new Uri("/test/errors/boom", UriKind.Relative));
+        string text = await response.Content.ReadAsStringAsync();
 
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
         Assert.Contains("unexpected_error", text, StringComparison.Ordinal);
@@ -44,11 +44,11 @@ public sealed class ApiPipelineTests(DatabaseFixture database) : IDisposable
     [Fact]
     public async Task Error_EchoesIncomingCorrelationIdInHeaderAndBody()
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, new Uri("/test/errors/not-found", UriKind.Relative));
+        using HttpRequestMessage request = new(HttpMethod.Get, new Uri("/test/errors/not-found", UriKind.Relative));
         request.Headers.Add(CorrelationId.HeaderName, "prueba-123");
 
-        using var response = await factory.CreateClient().SendAsync(request);
-        using var body = await ReadJsonAsync(response);
+        using HttpResponseMessage response = await factory.CreateClient().SendAsync(request);
+        using JsonDocument body = await ReadJsonAsync(response);
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         Assert.Equal("prueba-123", response.Headers.GetValues(CorrelationId.HeaderName).Single());
@@ -58,10 +58,10 @@ public sealed class ApiPipelineTests(DatabaseFixture database) : IDisposable
     [Fact]
     public async Task UnknownRoute_ReturnsProblemDetailsWithGeneratedCorrelationId()
     {
-        using var response = await factory.CreateClient().GetAsync(new Uri("/no-existe", UriKind.Relative));
-        using var body = await ReadJsonAsync(response);
+        using HttpResponseMessage response = await factory.CreateClient().GetAsync(new Uri("/no-existe", UriKind.Relative));
+        using JsonDocument body = await ReadJsonAsync(response);
 
-        var correlationId = response.Headers.GetValues(CorrelationId.HeaderName).Single();
+        string correlationId = response.Headers.GetValues(CorrelationId.HeaderName).Single();
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         Assert.Equal(ProblemJson, response.Content.Headers.ContentType?.MediaType);
         Assert.Equal(correlationId, body.RootElement.GetProperty("correlationId").GetString());
@@ -70,23 +70,23 @@ public sealed class ApiPipelineTests(DatabaseFixture database) : IDisposable
     [Fact]
     public async Task Health_WithDatabaseAvailable_ReturnsHealthy()
     {
-        using var response = await factory.CreateClient().GetAsync(new Uri("/health", UriKind.Relative));
-        using var body = await ReadJsonAsync(response);
+        using HttpResponseMessage response = await factory.CreateClient().GetAsync(new Uri("/health", UriKind.Relative));
+        using JsonDocument body = await ReadJsonAsync(response);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("Healthy", body.RootElement.GetProperty("status").GetString());
-        var check = Assert.Single(body.RootElement.GetProperty("checks").EnumerateArray());
+        JsonElement check = Assert.Single(body.RootElement.GetProperty("checks").EnumerateArray());
         Assert.Equal("database", check.GetProperty("name").GetString());
     }
 
     [Fact]
     public async Task Health_WithDatabaseUnavailable_Returns503()
     {
-        var unreachable = new NpgsqlConnectionStringBuilder(database.ConnectionString) { Database = "no_existe_inventory" };
-        using var brokenFactory = new ApiFactory(unreachable.ConnectionString);
+        NpgsqlConnectionStringBuilder unreachable = new(database.ConnectionString) { Database = "no_existe_inventory" };
+        using ApiFactory brokenFactory = new(unreachable.ConnectionString);
 
-        using var response = await brokenFactory.CreateClient().GetAsync(new Uri("/health", UriKind.Relative));
-        using var body = await ReadJsonAsync(response);
+        using HttpResponseMessage response = await brokenFactory.CreateClient().GetAsync(new Uri("/health", UriKind.Relative));
+        using JsonDocument body = await ReadJsonAsync(response);
 
         Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
         Assert.Equal("Unhealthy", body.RootElement.GetProperty("status").GetString());
@@ -95,10 +95,10 @@ public sealed class ApiPipelineTests(DatabaseFixture database) : IDisposable
     [Fact]
     public async Task OpenApi_DeclaresBearerSecurityScheme()
     {
-        using var response = await factory.CreateClient().GetAsync(new Uri("/openapi/v1.json", UriKind.Relative));
-        using var body = await ReadJsonAsync(response);
+        using HttpResponseMessage response = await factory.CreateClient().GetAsync(new Uri("/openapi/v1.json", UriKind.Relative));
+        using JsonDocument body = await ReadJsonAsync(response);
 
-        var scheme = body.RootElement.GetProperty("components").GetProperty("securitySchemes").GetProperty("Bearer");
+        JsonElement scheme = body.RootElement.GetProperty("components").GetProperty("securitySchemes").GetProperty("Bearer");
         Assert.Equal("bearer", scheme.GetProperty("scheme").GetString());
     }
 

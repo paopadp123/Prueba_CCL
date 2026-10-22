@@ -33,9 +33,9 @@ public sealed class DatabaseFixture : IAsyncLifetime
         await EnsureDatabaseExistsAsync();
         await ResetSchemaAsync();
 
-        await using var connection = new NpgsqlConnection(ConnectionString);
+        await using NpgsqlConnection connection = new(ConnectionString);
         await connection.OpenAsync();
-        await using var command = new NpgsqlCommand(
+        await using NpgsqlCommand command = new(
             "SELECT id FROM inventory.users WHERE username = 'admin'", connection);
         AdminUserId = (long)(await command.ExecuteScalarAsync())!;
     }
@@ -48,7 +48,7 @@ public sealed class DatabaseFixture : IAsyncLifetime
     /// </summary>
     public ServiceProvider CreateServices(long? userId = null)
     {
-        var configuration = new ConfigurationBuilder()
+        IConfigurationRoot configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 [$"ConnectionStrings:{DependencyInjection.ConnectionStringName}"] = ConnectionString,
@@ -66,10 +66,10 @@ public sealed class DatabaseFixture : IAsyncLifetime
     /// </summary>
     public async Task<T> ScalarAsync<T>(string sql, params (string Name, object Value)[] parameters)
     {
-        await using var connection = new NpgsqlConnection(ConnectionString);
+        await using NpgsqlConnection connection = new(ConnectionString);
         await connection.OpenAsync();
-        await using var command = new NpgsqlCommand(sql, connection);
-        foreach (var (name, value) in parameters)
+        await using NpgsqlCommand command = new(sql, connection);
+        foreach ((string name, object value) in parameters)
         {
             command.Parameters.AddWithValue(name, value);
         }
@@ -79,43 +79,43 @@ public sealed class DatabaseFixture : IAsyncLifetime
 
     private async Task EnsureDatabaseExistsAsync()
     {
-        var builder = new NpgsqlConnectionStringBuilder(ConnectionString);
-        var databaseName = builder.Database!;
+        NpgsqlConnectionStringBuilder builder = new(ConnectionString);
+        string databaseName = builder.Database!;
         builder.Database = "postgres";
 
-        await using var connection = new NpgsqlConnection(builder.ConnectionString);
+        await using NpgsqlConnection connection = new(builder.ConnectionString);
         await connection.OpenAsync();
 
-        await using var exists = new NpgsqlCommand("SELECT 1 FROM pg_database WHERE datname = @name", connection);
+        await using NpgsqlCommand exists = new("SELECT 1 FROM pg_database WHERE datname = @name", connection);
         exists.Parameters.AddWithValue("name", databaseName);
         if (await exists.ExecuteScalarAsync() is null)
         {
-            await using var create = new NpgsqlCommand($"CREATE DATABASE \"{databaseName}\"", connection);
+            await using NpgsqlCommand create = new($"CREATE DATABASE \"{databaseName}\"", connection);
             await create.ExecuteNonQueryAsync();
         }
     }
 
     private async Task ResetSchemaAsync()
     {
-        await using var connection = new NpgsqlConnection(ConnectionString);
+        await using NpgsqlConnection connection = new(ConnectionString);
         await connection.OpenAsync();
 
-        await using (var drop = new NpgsqlCommand("DROP SCHEMA IF EXISTS inventory CASCADE", connection))
+        await using (NpgsqlCommand drop = new NpgsqlCommand("DROP SCHEMA IF EXISTS inventory CASCADE", connection))
         {
             await drop.ExecuteNonQueryAsync();
         }
 
-        var scripts = Directory.GetFiles(Path.Combine(FindRepositoryRoot(), "database"), "0*.sql").Order(StringComparer.Ordinal);
-        foreach (var script in scripts)
+        IOrderedEnumerable<string> scripts = Directory.GetFiles(Path.Combine(FindRepositoryRoot(), "database"), "0*.sql").Order(StringComparer.Ordinal);
+        foreach (string? script in scripts)
         {
-            await using var command = new NpgsqlCommand(await File.ReadAllTextAsync(script), connection);
+            await using NpgsqlCommand command = new(await File.ReadAllTextAsync(script), connection);
             await command.ExecuteNonQueryAsync();
         }
     }
 
     private static string FindRepositoryRoot()
     {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        DirectoryInfo? directory = new(AppContext.BaseDirectory);
         while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "Inventory.slnx")))
         {
             directory = directory.Parent;

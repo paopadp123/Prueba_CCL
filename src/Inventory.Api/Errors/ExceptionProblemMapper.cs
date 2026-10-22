@@ -51,7 +51,7 @@ public static class ExceptionProblemMapper
 
     private static ProblemDetails WithValues(ProblemDetails problem, params (string Key, object Value)[] values)
     {
-        foreach (var (key, value) in values)
+        foreach ((string key, object value) in values)
         {
             problem.Extensions[key] = value;
         }

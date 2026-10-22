@@ -16,15 +16,15 @@ internal sealed class MovementRepository(NpgsqlDataSource dataSource) : IMovemen
     {
         ArgumentNullException.ThrowIfNull(movement);
 
-        var procedure = movement.Type == MovementType.Entry
+        string procedure = movement.Type == MovementType.Entry
             ? "inventory.sp_register_entry"
             : "inventory.sp_register_exit";
 
-        await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
+        await using NpgsqlConnection connection = await dataSource.OpenConnectionAsync(cancellationToken);
 
         try
         {
-            var result = await connection.QuerySingleAsync<(long MovementId, int StockAfter)>(new CommandDefinition(
+            (long MovementId, int StockAfter) result = await connection.QuerySingleAsync<(long MovementId, int StockAfter)>(new CommandDefinition(
                 $"""
                 CALL {procedure}(@ProductId, @Quantity, @UserId, @Reason, NULL, NULL)
                 """,

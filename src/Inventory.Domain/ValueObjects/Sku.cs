@@ -24,7 +24,7 @@ public sealed partial record Sku
     /// </summary>
     public static Sku Create(string? value)
     {
-        var normalized = value?.Trim().ToUpperInvariant();
+        string? normalized = value?.Trim().ToUpperInvariant();
 
         return normalized is not null && SkuFormat().IsMatch(normalized)
             ? new Sku(normalized)

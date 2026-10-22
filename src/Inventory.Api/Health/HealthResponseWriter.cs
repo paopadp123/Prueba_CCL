@@ -18,20 +18,20 @@ public static class HealthResponseWriter
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(report);
 
-        var body = new
-        {
-            status = report.Status.ToString(),
-            totalDurationMs = Math.Round(report.TotalDuration.TotalMilliseconds, 1),
-            checks = report.Entries.Select(entry => new
-            {
-                name = entry.Key,
-                status = entry.Value.Status.ToString(),
-                durationMs = Math.Round(entry.Value.Duration.TotalMilliseconds, 1),
-                description = entry.Value.Description,
-            }),
-        };
+        HealthResponse body = new(
+            report.Status.ToString(),
+            Math.Round(report.TotalDuration.TotalMilliseconds, 1),
+            [.. report.Entries.Select(entry => new HealthCheckResponse(
+                entry.Key,
+                entry.Value.Status.ToString(),
+                Math.Round(entry.Value.Duration.TotalMilliseconds, 1),
+                entry.Value.Description))]);
 
         context.Response.ContentType = "application/json";
         return context.Response.WriteAsJsonAsync(body, JsonOptions, context.RequestAborted);
     }
+
+    private sealed record HealthResponse(string Status, double TotalDurationMs, IReadOnlyList<HealthCheckResponse> Checks);
+
+    private sealed record HealthCheckResponse(string Name, string Status, double DurationMs, string? Description);
 }

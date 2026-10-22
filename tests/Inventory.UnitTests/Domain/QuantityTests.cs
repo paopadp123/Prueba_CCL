@@ -11,7 +11,7 @@ public class QuantityTests
     [Fact]
     public void Create_WithPositiveValue_ReturnsQuantity()
     {
-        var quantity = Quantity.Create(5);
+        Quantity quantity = Quantity.Create(5);
 
         Assert.Equal(5, quantity.Value);
     }

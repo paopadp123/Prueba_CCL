@@ -15,8 +15,8 @@ public sealed partial class ApiExceptionHandler(
         Exception exception,
         CancellationToken cancellationToken)
     {
-        var problem = ExceptionProblemMapper.Map(exception);
-        var status = problem.Status ?? StatusCodes.Status500InternalServerError;
+        Microsoft.AspNetCore.Mvc.ProblemDetails problem = ExceptionProblemMapper.Map(exception);
+        int status = problem.Status ?? StatusCodes.Status500InternalServerError;
 
         if (status >= StatusCodes.Status500InternalServerError)
         {

@@ -20,7 +20,7 @@ public class LayerDependencyTests
     [InlineData(Application, Api)]
     public void Layer_ShouldNotDependOn_OuterLayer(string layer, string forbiddenDependency)
     {
-        var references = Assembly.Load(layer)
+        IEnumerable<string?> references = Assembly.Load(layer)
             .GetReferencedAssemblies()
             .Select(reference => reference.Name);
 

@@ -8,7 +8,7 @@ using Inventory.Infrastructure;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSerilog((services, logger) => logger
     .ReadFrom.Configuration(builder.Configuration)
@@ -23,7 +23,7 @@ builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 
 builder.Services.AddHealthChecks().AddInventoryDatabaseCheck();
 
-var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+string[] allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy
     .WithOrigins(allowedOrigins)
     .AllowAnyHeader()
@@ -37,7 +37,7 @@ builder.Services.AddOpenApi(options =>
     options.AddOperationTransformer<BearerSecurityTransformer>();
 });
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseSerilogRequestLogging();

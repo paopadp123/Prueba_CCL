@@ -25,11 +25,11 @@ public static class DependencyInjection
     /// </summary>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString(ConnectionStringName)
+        string connectionString = configuration.GetConnectionString(ConnectionStringName)
             ?? throw new InvalidOperationException(
                 $"Falta la cadena de conexión '{ConnectionStringName}'. Configúrela con dotnet user-secrets o variables de entorno.");
 
-        var builder = new NpgsqlConnectionStringBuilder(connectionString) { IncludeErrorDetail = true };
+        NpgsqlConnectionStringBuilder builder = new(connectionString) { IncludeErrorDetail = true };
 
         services.AddNpgsqlDataSource(builder.ConnectionString);
         services.AddScoped<IProductRepository, ProductRepository>();

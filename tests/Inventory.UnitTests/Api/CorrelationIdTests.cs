@@ -22,7 +22,7 @@ public class CorrelationIdTests
     [InlineData("salto\nde-linea")]
     public void Resolve_MissingOrUnsafeValue_GeneratesNewId(string? incoming)
     {
-        var result = CorrelationId.Resolve(incoming);
+        string result = CorrelationId.Resolve(incoming);
 
         Assert.NotEqual(incoming, result);
         Assert.Equal(32, result.Length);
@@ -31,7 +31,7 @@ public class CorrelationIdTests
     [Fact]
     public void Resolve_TooLongValue_GeneratesNewId()
     {
-        var incoming = new string('a', 65);
+        string incoming = new('a', 65);
 
         Assert.NotEqual(incoming, CorrelationId.Resolve(incoming));
     }
