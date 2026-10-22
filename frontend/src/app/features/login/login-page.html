@@ -1,0 +1,47 @@
+<main class="login">
+  <section class="card login__card">
+    <h1>Inventario</h1>
+    <p class="muted">Ingresa con tu usuario para continuar.</p>
+
+    @if (error(); as message) {
+      <div class="alert alert--error" role="alert">{{ message }}</div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="field">
+        <label for="username">Usuario</label>
+        <input id="username" type="text" formControlName="username" autocomplete="username" />
+        @if (form.controls.username.touched && form.controls.username.hasError('required')) {
+          <small class="field__error">Ingresa tu usuario.</small>
+        }
+      </div>
+
+      <div class="field">
+        <label for="password">Contraseña</label>
+        <div class="field__group">
+          <input
+            id="password"
+            [type]="showPassword() ? 'text' : 'password'"
+            formControlName="password"
+            autocomplete="current-password"
+          />
+          <button
+            type="button"
+            class="button button--ghost"
+            [attr.aria-pressed]="showPassword()"
+            (click)="showPassword.set(!showPassword())"
+          >
+            {{ showPassword() ? 'Ocultar' : 'Ver' }}
+          </button>
+        </div>
+        @if (form.controls.password.touched && form.controls.password.hasError('required')) {
+          <small class="field__error">Ingresa tu contraseña.</small>
+        }
+      </div>
+
+      <button type="submit" class="button button--primary button--block" [disabled]="loading()">
+        {{ loading() ? 'Ingresando…' : 'Ingresar' }}
+      </button>
+    </form>
+  </section>
+</main>
