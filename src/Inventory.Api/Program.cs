@@ -52,7 +52,8 @@ app.UseSerilogRequestLogging();
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 
-if (app.Environment.IsDevelopment())
+// Swagger siempre en desarrollo; en otros ambientes solo si se habilita (p. ej. la demo con docker-compose).
+if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("Swagger:Enabled"))
 {
     app.MapOpenApi().AllowAnonymous();
     app.UseSwaggerUI(options =>
@@ -61,7 +62,8 @@ if (app.Environment.IsDevelopment())
         options.DocumentTitle = "Inventory API";
     });
 }
-else
+
+if (!app.Environment.IsDevelopment())
 {
     app.UseHsts();
     app.UseHttpsRedirection();
