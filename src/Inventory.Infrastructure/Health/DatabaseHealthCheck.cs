@@ -14,8 +14,8 @@ internal sealed class DatabaseHealthCheck(NpgsqlDataSource dataSource) : IHealth
     {
         try
         {
-            await using var command = dataSource.CreateCommand("SELECT to_regclass('inventory.products') IS NOT NULL");
-            var schemaReady = (bool)(await command.ExecuteScalarAsync(cancellationToken))!;
+            await using NpgsqlCommand command = dataSource.CreateCommand("SELECT to_regclass('inventory.products') IS NOT NULL");
+            bool schemaReady = (bool)(await command.ExecuteScalarAsync(cancellationToken))!;
 
             return schemaReady
                 ? HealthCheckResult.Healthy("PostgreSQL disponible.")

@@ -110,9 +110,9 @@ public sealed class Product
     /// </summary>
     public void UpdateDetails(string? name, string? description, decimal unitPrice)
     {
-        var validName = ValidateName(name);
-        var validDescription = NormalizeDescription(description);
-        var validPrice = ValidatePrice(unitPrice);
+        string validName = ValidateName(name);
+        string? validDescription = NormalizeDescription(description);
+        decimal validPrice = ValidatePrice(unitPrice);
 
         Name = validName;
         Description = validDescription;
@@ -150,7 +150,7 @@ public sealed class Product
 
     private static string ValidateName(string? name)
     {
-        var trimmed = name?.Trim();
+        string? trimmed = name?.Trim();
 
         if (string.IsNullOrEmpty(trimmed))
         {
@@ -167,7 +167,7 @@ public sealed class Product
 
     private static string? NormalizeDescription(string? description)
     {
-        var trimmed = description?.Trim();
+        string? trimmed = description?.Trim();
 
         if (string.IsNullOrEmpty(trimmed))
         {

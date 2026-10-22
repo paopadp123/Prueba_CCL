@@ -25,7 +25,7 @@ public class ExceptionProblemMapperTests
     [MemberData(nameof(DomainCases))]
     public void Map_DomainException_UsesExpectedStatusAndCode(Exception exception, int status, string code)
     {
-        var problem = ExceptionProblemMapper.Map(exception);
+        Microsoft.AspNetCore.Mvc.ProblemDetails problem = ExceptionProblemMapper.Map(exception);
 
         Assert.Equal(status, problem.Status);
         Assert.Equal(code, problem.Extensions["code"]);
@@ -35,7 +35,7 @@ public class ExceptionProblemMapperTests
     [Fact]
     public void Map_InsufficientStock_IncludesAvailableAndRequested()
     {
-        var problem = ExceptionProblemMapper.Map(new InsufficientStockException(2, 8));
+        Microsoft.AspNetCore.Mvc.ProblemDetails problem = ExceptionProblemMapper.Map(new InsufficientStockException(2, 8));
 
         Assert.Equal(2, problem.Extensions["available"]);
         Assert.Equal(8, problem.Extensions["requested"]);
@@ -44,7 +44,7 @@ public class ExceptionProblemMapperTests
     [Fact]
     public void Map_BadHttpRequest_KeepsItsStatusCode()
     {
-        var problem = ExceptionProblemMapper.Map(new BadHttpRequestException("JSON inválido", StatusCodes.Status400BadRequest));
+        Microsoft.AspNetCore.Mvc.ProblemDetails problem = ExceptionProblemMapper.Map(new BadHttpRequestException("JSON inválido", StatusCodes.Status400BadRequest));
 
         Assert.Equal(StatusCodes.Status400BadRequest, problem.Status);
         Assert.Equal("bad_request", problem.Extensions["code"]);
@@ -53,7 +53,7 @@ public class ExceptionProblemMapperTests
     [Fact]
     public void Map_UnexpectedException_ReturnsGenericErrorWithoutInternalDetails()
     {
-        var problem = ExceptionProblemMapper.Map(new InvalidOperationException("cadena de conexión secreta"));
+        Microsoft.AspNetCore.Mvc.ProblemDetails problem = ExceptionProblemMapper.Map(new InvalidOperationException("cadena de conexión secreta"));
 
         Assert.Equal(StatusCodes.Status500InternalServerError, problem.Status);
         Assert.Equal(ExceptionProblemMapper.UnexpectedErrorCode, problem.Extensions["code"]);

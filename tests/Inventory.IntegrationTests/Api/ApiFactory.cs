@@ -12,11 +12,17 @@ namespace Inventory.IntegrationTests.Api;
 /// </summary>
 public sealed class ApiFactory(string connectionString) : WebApplicationFactory<Program>
 {
+    /// <summary>
+    /// Clave de firma usada solo en pruebas.
+    /// </summary>
+    public const string TestSigningKey = "clave-de-pruebas-de-integracion-0123456789";
+
     /// <inheritdoc />
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Development");
         builder.UseSetting($"ConnectionStrings:{DependencyInjection.ConnectionStringName}", connectionString);
+        builder.UseSetting("Jwt:SigningKey", TestSigningKey);
         builder.ConfigureTestServices(services =>
             services.AddControllers().AddApplicationPart(typeof(ApiFactory).Assembly));
     }

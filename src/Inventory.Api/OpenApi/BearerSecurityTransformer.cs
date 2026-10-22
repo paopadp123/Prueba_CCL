@@ -39,8 +39,8 @@ public sealed class BearerSecurityTransformer : IOpenApiDocumentTransformer, IOp
         ArgumentNullException.ThrowIfNull(operation);
         ArgumentNullException.ThrowIfNull(context);
 
-        var metadata = context.Description.ActionDescriptor.EndpointMetadata;
-        var requiresAuth = metadata.OfType<IAuthorizeData>().Any() && !metadata.OfType<IAllowAnonymous>().Any();
+        IList<object> metadata = context.Description.ActionDescriptor.EndpointMetadata;
+        bool requiresAuth = metadata.OfType<IAuthorizeData>().Any() && !metadata.OfType<IAllowAnonymous>().Any();
         if (requiresAuth)
         {
             operation.Security ??= [];

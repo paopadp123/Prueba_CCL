@@ -14,7 +14,7 @@ public class ProductTests
     [Fact]
     public void Create_WithValidData_ReturnsActiveProductWithoutStock()
     {
-        var product = Product.Create(DefaultSku, "  Portátil  ", "  Oficina  ", 3200000m);
+        Product product = Product.Create(DefaultSku, "  Portátil  ", "  Oficina  ", 3200000m);
 
         Assert.Equal(DefaultSku, product.Sku);
         Assert.Equal("Portátil", product.Name);
@@ -27,7 +27,7 @@ public class ProductTests
     [Fact]
     public void Create_WithBlankDescription_StoresNull()
     {
-        var product = Product.Create(DefaultSku, "Portátil", "   ", 10m);
+        Product product = Product.Create(DefaultSku, "Portátil", "   ", 10m);
 
         Assert.Null(product.Description);
     }
@@ -44,7 +44,7 @@ public class ProductTests
     [Fact]
     public void Create_WithNameLongerThan150_ThrowsDomainValidationException()
     {
-        var name = new string('a', 151);
+        string name = new('a', 151);
 
         Assert.Throws<DomainValidationException>(() => Product.Create(DefaultSku, name, null, 10m));
     }
@@ -52,7 +52,7 @@ public class ProductTests
     [Fact]
     public void Create_WithDescriptionLongerThan500_ThrowsDomainValidationException()
     {
-        var description = new string('a', 501);
+        string description = new('a', 501);
 
         Assert.Throws<DomainValidationException>(() => Product.Create(DefaultSku, "Portátil", description, 10m));
     }
@@ -74,7 +74,7 @@ public class ProductTests
     [Fact]
     public void UpdateDetails_WithValidData_ChangesNameDescriptionAndPrice()
     {
-        var product = Product.Create(DefaultSku, "Portátil", null, 10m);
+        Product product = Product.Create(DefaultSku, "Portátil", null, 10m);
 
         product.UpdateDetails("Portátil Pro", "Nueva versión", 20m);
 
@@ -86,7 +86,7 @@ public class ProductTests
     [Fact]
     public void UpdateDetails_WithInvalidData_KeepsPreviousValues()
     {
-        var product = Product.Create(DefaultSku, "Portátil", null, 10m);
+        Product product = Product.Create(DefaultSku, "Portátil", null, 10m);
 
         Assert.Throws<DomainValidationException>(() => product.UpdateDetails("Nuevo", null, -1m));
         Assert.Equal("Portátil", product.Name);
@@ -96,7 +96,7 @@ public class ProductTests
     [Fact]
     public void Deactivate_ThenActivate_TogglesIsActive()
     {
-        var product = Product.Create(DefaultSku, "Portátil", null, 10m);
+        Product product = Product.Create(DefaultSku, "Portátil", null, 10m);
 
         product.Deactivate();
         Assert.False(product.IsActive);
@@ -108,9 +108,9 @@ public class ProductTests
     [Fact]
     public void EnsureCanWithdraw_WithEnoughStock_DoesNotThrow()
     {
-        var product = RehydrateWithStock(10);
+        Product product = RehydrateWithStock(10);
 
-        var exception = Record.Exception(() => product.EnsureCanWithdraw(Quantity.Create(10)));
+        Exception exception = Record.Exception(() => product.EnsureCanWithdraw(Quantity.Create(10)));
 
         Assert.Null(exception);
     }
@@ -118,9 +118,9 @@ public class ProductTests
     [Fact]
     public void EnsureCanWithdraw_WithInsufficientStock_ThrowsWithAvailableAndRequested()
     {
-        var product = RehydrateWithStock(3);
+        Product product = RehydrateWithStock(3);
 
-        var exception = Assert.Throws<InsufficientStockException>(
+        InsufficientStockException exception = Assert.Throws<InsufficientStockException>(
             () => product.EnsureCanWithdraw(Quantity.Create(5)));
 
         Assert.Equal(3, exception.Available);
@@ -130,7 +130,7 @@ public class ProductTests
     [Fact]
     public void EnsureCanWithdraw_WhenInactive_ThrowsInactiveProductException()
     {
-        var product = RehydrateWithStock(10, isActive: false);
+        Product product = RehydrateWithStock(10, isActive: false);
 
         Assert.Throws<InactiveProductException>(() => product.EnsureCanWithdraw(Quantity.Create(1)));
     }
@@ -138,10 +138,10 @@ public class ProductTests
     [Fact]
     public void Rehydrate_RestoresAllState()
     {
-        var createdAt = new DateTimeOffset(2026, 10, 21, 10, 0, 0, TimeSpan.Zero);
-        var updatedAt = createdAt.AddHours(1);
+        DateTimeOffset createdAt = new(2026, 10, 21, 10, 0, 0, TimeSpan.Zero);
+        DateTimeOffset updatedAt = createdAt.AddHours(1);
 
-        var product = Product.Rehydrate(7, "LAP-001", "Portátil", "Oficina", 10m, 4, false, createdAt, updatedAt);
+        Product product = Product.Rehydrate(7, "LAP-001", "Portátil", "Oficina", 10m, 4, false, createdAt, updatedAt);
 
         Assert.Equal(7, product.Id);
         Assert.Equal(DefaultSku, product.Sku);

@@ -16,7 +16,7 @@ internal static class AuditSession
     public static async Task<NpgsqlTransaction> BeginAsync(
         NpgsqlConnection connection, IUserContext userContext, CancellationToken cancellationToken)
     {
-        var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        NpgsqlTransaction transaction = await connection.BeginTransactionAsync(cancellationToken);
 
         if (userContext.UserId is { } userId)
         {

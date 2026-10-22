@@ -108,7 +108,7 @@ public sealed class Movement
 
     private static string? NormalizeReason(string? reason)
     {
-        var trimmed = reason?.Trim();
+        string? trimmed = reason?.Trim();
 
         if (string.IsNullOrEmpty(trimmed))
         {

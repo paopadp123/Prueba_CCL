@@ -1,3 +1,4 @@
+using Inventory.Application.Auth;
 using Inventory.Domain.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
@@ -30,6 +31,8 @@ public static class ExceptionProblemMapper
         InactiveProductException e => Problem(StatusCodes.Status409Conflict, "Producto inactivo", e),
         UserNotAvailableException e => Problem(StatusCodes.Status403Forbidden, "Usuario no habilitado", e),
         DomainException e => Problem(StatusCodes.Status422UnprocessableEntity, "Regla de negocio incumplida", e),
+        InvalidCredentialsException e => Problem(
+            StatusCodes.Status401Unauthorized, "Credenciales inválidas", InvalidCredentialsException.Code, e.Message),
         BadHttpRequestException e => Problem(e.StatusCode, "Solicitud inválida", "bad_request", "La solicitud no tiene un formato válido."),
         _ => Problem(
             StatusCodes.Status500InternalServerError,
@@ -51,7 +54,7 @@ public static class ExceptionProblemMapper
 
     private static ProblemDetails WithValues(ProblemDetails problem, params (string Key, object Value)[] values)
     {
-        foreach (var (key, value) in values)
+        foreach ((string key, object value) in values)
         {
             problem.Extensions[key] = value;
         }

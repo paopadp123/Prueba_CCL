@@ -22,8 +22,8 @@ public sealed class HttpUserContext(IHttpContextAccessor accessor) : IUserContex
     /// </summary>
     public static long? ReadUserId(ClaimsPrincipal? user)
     {
-        var value = user?.FindFirst(SubjectClaim)?.Value ?? user?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return long.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var id) && id > 0
+        string? value = user?.FindFirst(SubjectClaim)?.Value ?? user?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return long.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out long id) && id > 0
             ? id
             : null;
     }

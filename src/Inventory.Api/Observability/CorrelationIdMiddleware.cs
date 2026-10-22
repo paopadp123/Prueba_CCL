@@ -15,7 +15,7 @@ public sealed class CorrelationIdMiddleware(RequestDelegate next)
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var correlationId = CorrelationId.Resolve(context.Request.Headers[CorrelationId.HeaderName]);
+        string correlationId = CorrelationId.Resolve(context.Request.Headers[CorrelationId.HeaderName]);
         context.TraceIdentifier = correlationId;
 
         // OnStarting: el manejador de errores limpia los encabezados antes de escribir la respuesta.

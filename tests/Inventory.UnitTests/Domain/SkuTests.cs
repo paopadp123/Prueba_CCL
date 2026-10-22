@@ -14,7 +14,7 @@ public class SkuTests
     [InlineData("A23456789012345678901234567890")]
     public void Create_WithValidFormat_ReturnsSku(string value)
     {
-        var sku = Sku.Create(value);
+        Sku sku = Sku.Create(value);
 
         Assert.Equal(value, sku.Value);
     }
@@ -22,7 +22,7 @@ public class SkuTests
     [Fact]
     public void Create_NormalizesToUpperCaseAndTrims()
     {
-        var sku = Sku.Create("  lap-001 ");
+        Sku sku = Sku.Create("  lap-001 ");
 
         Assert.Equal("LAP-001", sku.Value);
     }

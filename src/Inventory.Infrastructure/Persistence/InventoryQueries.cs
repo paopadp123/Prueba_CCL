@@ -16,9 +16,9 @@ internal sealed class InventoryQueries(NpgsqlDataSource dataSource) : IInventory
     {
         ArgumentNullException.ThrowIfNull(page);
 
-        await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
+        await using NpgsqlConnection connection = await dataSource.OpenConnectionAsync(cancellationToken);
 
-        var rows = (await connection.QueryAsync<StockRow>(new CommandDefinition(
+        List<StockRow> rows = (await connection.QueryAsync<StockRow>(new CommandDefinition(
             """
             SELECT product_id AS ProductId, sku AS Sku, name AS Name, unit_price AS UnitPrice,
                    current_stock AS CurrentStock, stock_value AS StockValue, is_active AS IsActive,
@@ -28,7 +28,7 @@ internal sealed class InventoryQueries(NpgsqlDataSource dataSource) : IInventory
             new { Search = NormalizeSearch(search), OnlyActive = onlyActive, Limit = page.PageSize, page.Offset },
             cancellationToken: cancellationToken))).ToList();
 
-        var items = rows
+        List<StockItem> items = rows
             .Select(row => new StockItem(
                 row.ProductId, row.Sku, row.Name, row.UnitPrice, row.CurrentStock, row.StockValue,
                 row.IsActive, DbTime.ToOffset(row.UpdatedAt)))
@@ -43,9 +43,9 @@ internal sealed class InventoryQueries(NpgsqlDataSource dataSource) : IInventory
     {
         ArgumentNullException.ThrowIfNull(page);
 
-        await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
+        await using NpgsqlConnection connection = await dataSource.OpenConnectionAsync(cancellationToken);
 
-        var rows = (await connection.QueryAsync<MovementRow>(new CommandDefinition(
+        List<MovementRow> rows = (await connection.QueryAsync<MovementRow>(new CommandDefinition(
             """
             SELECT movement_id AS MovementId, product_id AS ProductId, sku AS Sku, product_name AS ProductName,
                    movement_type AS MovementType, quantity AS Quantity, stock_after AS StockAfter, reason AS Reason,
@@ -55,7 +55,7 @@ internal sealed class InventoryQueries(NpgsqlDataSource dataSource) : IInventory
             new { ProductId = productId, Limit = page.PageSize, page.Offset },
             cancellationToken: cancellationToken))).ToList();
 
-        var items = rows
+        List<MovementHistoryItem> items = rows
             .Select(row => new MovementHistoryItem(
                 row.MovementId, row.ProductId, row.Sku, row.ProductName,
                 MovementTypeCodes.FromCode(row.MovementType), row.Quantity, row.StockAfter, row.Reason,

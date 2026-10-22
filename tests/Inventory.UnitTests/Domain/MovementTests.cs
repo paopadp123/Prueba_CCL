@@ -12,7 +12,7 @@ public class MovementTests
     [Fact]
     public void Create_WithValidData_ReturnsPendingMovement()
     {
-        var movement = Movement.Create(3, MovementType.Exit, Quantity.Create(5), 1, "  Venta  ");
+        Movement movement = Movement.Create(3, MovementType.Exit, Quantity.Create(5), 1, "  Venta  ");
 
         Assert.Equal(0, movement.Id);
         Assert.Equal(3, movement.ProductId);
@@ -29,7 +29,7 @@ public class MovementTests
     [InlineData("   ")]
     public void Create_WithBlankReason_StoresNull(string? reason)
     {
-        var movement = Movement.Create(3, MovementType.Entry, Quantity.Create(1), 1, reason);
+        Movement movement = Movement.Create(3, MovementType.Entry, Quantity.Create(1), 1, reason);
 
         Assert.Null(movement.Reason);
     }
@@ -37,7 +37,7 @@ public class MovementTests
     [Fact]
     public void Create_WithReasonLongerThan250_ThrowsDomainValidationException()
     {
-        var reason = new string('a', 251);
+        string reason = new('a', 251);
 
         Assert.Throws<DomainValidationException>(
             () => Movement.Create(3, MovementType.Entry, Quantity.Create(1), 1, reason));
@@ -57,9 +57,9 @@ public class MovementTests
     [Fact]
     public void Rehydrate_RestoresRegisteredMovement()
     {
-        var createdAt = new DateTimeOffset(2026, 10, 21, 10, 0, 0, TimeSpan.Zero);
+        DateTimeOffset createdAt = new(2026, 10, 21, 10, 0, 0, TimeSpan.Zero);
 
-        var movement = Movement.Rehydrate(9, 3, MovementType.Entry, 10, 25, "Compra", 1, createdAt);
+        Movement movement = Movement.Rehydrate(9, 3, MovementType.Entry, 10, 25, "Compra", 1, createdAt);
 
         Assert.Equal(9, movement.Id);
         Assert.Equal(25, movement.StockAfter);

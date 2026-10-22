@@ -45,7 +45,7 @@ public static class PostgresErrorMapper
 
     private static InsufficientStockException MapInsufficientStock(string? detail, int quantity)
     {
-        var values = (detail ?? string.Empty)
+        Dictionary<string, string> values = (detail ?? string.Empty)
             .Split(';', StringSplitOptions.RemoveEmptyEntries)
             .Select(pair => pair.Split('=', 2))
             .Where(pair => pair.Length == 2)
@@ -57,7 +57,7 @@ public static class PostgresErrorMapper
     }
 
     private static int ReadInt(Dictionary<string, string> values, string key, int fallback) =>
-        values.TryGetValue(key, out var text) && int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var value)
+        values.TryGetValue(key, out string? text) && int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int value)
             ? value
             : fallback;
 }
