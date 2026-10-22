@@ -3,6 +3,7 @@ using Inventory.Api.Health;
 using Inventory.Api.Observability;
 using Inventory.Api.OpenApi;
 using Inventory.Api.Security;
+using Inventory.Application;
 using Inventory.Application.Abstractions;
 using Inventory.Infrastructure;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -14,9 +15,12 @@ builder.Services.AddSerilog((services, logger) => logger
     .ReadFrom.Configuration(builder.Configuration)
     .ReadFrom.Services(services));
 
+builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IUserContext, HttpUserContext>();
+builder.Services.AddJwtAuthentication();
+builder.Services.AddLoginRateLimiting(builder.Configuration);
 
 builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = ProblemDetailsEnricher.Enrich);
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
@@ -46,7 +50,7 @@ app.UseStatusCodePages();
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.MapOpenApi().AllowAnonymous();
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/openapi/v1.json", "Inventory API v1");
@@ -60,6 +64,8 @@ else
 }
 
 app.UseCors();
+app.UseAuthentication();
+app.UseRateLimiter();
 app.UseAuthorization();
 
 app.MapControllers();

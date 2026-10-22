@@ -1,6 +1,7 @@
 using Inventory.Application.Abstractions;
 using Inventory.Infrastructure.Health;
 using Inventory.Infrastructure.Persistence;
+using Inventory.Infrastructure.Security;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -19,7 +20,8 @@ public static class DependencyInjection
     public const string ConnectionStringName = "Inventory";
 
     /// <summary>
-    /// Registra el origen de datos de PostgreSQL, los repositorios y las consultas.
+    /// Registra el origen de datos de PostgreSQL, los repositorios, las consultas y la seguridad
+    /// (BCrypt y emisión de JWT; la configuración "Jwt" se valida al arrancar).
     /// Habilita IncludeErrorDetail porque los procedimientos envían datos de negocio en el DETAIL
     /// del error (por ejemplo, el stock disponible); esos errores nunca se exponen tal cual al cliente.
     /// </summary>
@@ -35,6 +37,15 @@ public static class DependencyInjection
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<IMovementRepository, MovementRepository>();
         services.AddScoped<IInventoryQueries, InventoryQueries>();
+        services.AddScoped<IUserRepository, UserRepository>();
+
+        services.AddOptions<JwtOptions>()
+            .Bind(configuration.GetSection(JwtOptions.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+        services.AddSingleton(TimeProvider.System);
+        services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
+        services.AddSingleton<ITokenService, JwtTokenService>();
 
         return services;
     }
