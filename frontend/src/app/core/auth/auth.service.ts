@@ -24,6 +24,7 @@ export class AuthService {
 
   readonly user = computed<User | null>(() => this.session()?.user ?? null);
   readonly token = computed<string | null>(() => this.session()?.accessToken ?? null);
+  readonly expiresAt = computed<string | null>(() => this.session()?.expiresAt ?? null);
   readonly isAuthenticated = computed<boolean>(() => this.session() !== null);
   readonly isAdmin = computed<boolean>(() => this.user()?.role === 'Admin');
 

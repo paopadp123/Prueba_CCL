@@ -1,0 +1,56 @@
+@if (auth.user(); as user) {
+  <button
+    #trigger
+    type="button"
+    class="trigger"
+    aria-controls="user-menu-panel"
+    [attr.aria-expanded]="open()"
+    (click)="toggle($event)"
+  >
+    <span class="avatar">{{ initials() }}</span>
+    <span>{{ user.fullName }}</span>
+    <app-icon name="chevronDown" [size]="16" class="trigger__chevron" />
+  </button>
+
+  @if (open()) {
+    <div #panel id="user-menu-panel" class="panel" (keydown)="onKeydown($event)">
+      <div class="user-card">
+        <span class="avatar avatar--large">{{ initials() }}</span>
+        <div class="user-card__info">
+          <strong>{{ user.fullName }}</strong>
+          <span class="muted">{{ '@' + user.username }}</span>
+          <span class="badge">{{ roleLabel() }}</span>
+        </div>
+      </div>
+
+      @if (auth.expiresAt(); as expiresAt) {
+        <p class="session-note">
+          <app-icon name="history" [size]="16" />
+          Tu sesión vence a las {{ expiresAt | date: 'shortTime' }}
+        </p>
+      }
+
+      <div class="section">
+        <span class="section__title">Atajos</span>
+        <a class="item" routerLink="/movements/new" [queryParams]="{ type: 'Entry' }">
+          <app-icon name="entry" [size]="18" /> Registrar entrada
+        </a>
+        <a class="item" routerLink="/movements/new" [queryParams]="{ type: 'Exit' }">
+          <app-icon name="exit" [size]="18" /> Registrar salida
+        </a>
+        @if (auth.isAdmin()) {
+          <a class="item" routerLink="/products/new"><app-icon name="plus" [size]="18" /> Nuevo producto</a>
+        }
+      </div>
+
+      <div class="section">
+        <span class="section__title">Tema</span>
+        <app-theme-picker />
+      </div>
+
+      <button type="button" class="item item--danger" (click)="auth.logout()">
+        <app-icon name="logout" [size]="18" /> Cerrar sesión
+      </button>
+    </div>
+  }
+}

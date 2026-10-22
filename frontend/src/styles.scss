@@ -224,6 +224,27 @@ code {
   }
 }
 
+/* ---------- Avatar con iniciales ---------- */
+
+.avatar {
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.avatar--large {
+  width: 2.75rem;
+  height: 2.75rem;
+  font-size: 1rem;
+}
+
 /* ---------- Insignias ---------- */
 
 .badge {

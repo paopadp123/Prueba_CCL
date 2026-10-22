@@ -12,36 +12,7 @@
     }
   </nav>
 
-  <app-theme-toggle class="topbar__theme" />
-
-  @if (auth.user(); as user) {
-    <div class="user-menu">
-      <button
-        type="button"
-        class="user-menu__trigger"
-        aria-haspopup="menu"
-        [attr.aria-expanded]="userMenuOpen()"
-        (click)="toggleUserMenu($event)"
-      >
-        <span class="avatar">{{ initials() }}</span>
-        <span class="user-menu__name">{{ user.fullName }}</span>
-        <app-icon name="chevronDown" [size]="16" />
-      </button>
-
-      @if (userMenuOpen()) {
-        <div class="user-menu__panel" role="menu">
-          <div class="user-menu__info">
-            <strong>{{ user.fullName }}</strong>
-            <span class="muted">{{ user.username }}</span>
-            <span class="badge">{{ roleLabel() }}</span>
-          </div>
-          <button type="button" class="menu-item" role="menuitem" (click)="auth.logout()">
-            <app-icon name="logout" [size]="18" /> Cerrar sesión
-          </button>
-        </div>
-      }
-    </div>
-  }
+  <app-user-menu class="user-menu" />
 
   <button
     type="button"
@@ -56,7 +27,7 @@
 </header>
 
 @if (mobileMenuOpen()) {
-  <div class="drawer-backdrop" (click)="closeMenus()"></div>
+  <div class="drawer-backdrop" (click)="mobileMenuOpen.set(false)"></div>
   <nav id="mobile-menu" class="drawer" aria-label="Menú">
     @if (auth.user(); as user) {
       <div class="drawer__user">
@@ -64,6 +35,9 @@
         <div>
           <strong>{{ user.fullName }}</strong>
           <span class="badge">{{ roleLabel() }}</span>
+          @if (auth.expiresAt(); as expiresAt) {
+            <small class="muted">Sesión hasta las {{ expiresAt | date: 'shortTime' }}</small>
+          }
         </div>
       </div>
     }
@@ -81,7 +55,8 @@
     }
 
     <div class="drawer__divider"></div>
-    <app-theme-toggle [labeled]="true" />
+    <span class="menu-section__title">Tema</span>
+    <app-theme-picker />
 
     <button type="button" class="drawer__link drawer__logout" (click)="auth.logout()">
       <app-icon name="logout" />
