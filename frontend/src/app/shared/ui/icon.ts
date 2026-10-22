@@ -29,6 +29,15 @@ const icons = {
   plus: { paths: ['M12 5v14', 'M5 12h14'] },
   edit: { paths: ['M4 20h4L19 9l-4-4L4 16v4z', 'M13 7l4 4'] },
   stock: { paths: ['M4 20V10', 'M10 20V4', 'M16 20v-7', 'M22 20H2'] },
+  eye: { paths: ['M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z'], circles: [[12, 12, 3]] },
+  eyeOff: {
+    paths: [
+      'M3 3l18 18',
+      'M10.6 6.1A9.8 9.8 0 0 1 12 6c6.5 0 10 6 10 6a17 17 0 0 1-3.2 3.9',
+      'M6.6 6.6C3.8 8.3 2 12 2 12s3.5 7 10 7a9.6 9.6 0 0 0 5.4-1.6',
+      'M9.9 9.9a3 3 0 0 0 4.2 4.2',
+    ],
+  },
 } satisfies Record<string, IconShape>;
 
 export type IconName = keyof typeof icons;
