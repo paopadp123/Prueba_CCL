@@ -3,6 +3,9 @@
 
   <nav class="nav" aria-label="Principal">
     <a routerLink="/" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">Inicio</a>
+    <a routerLink="/products" routerLinkActive="is-active">Productos</a>
+    <a routerLink="/movements" routerLinkActive="is-active">Movimientos</a>
+    <a routerLink="/stock" routerLinkActive="is-active">Stock</a>
   </nav>
 
   @if (auth.user(); as user) {

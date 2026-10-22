@@ -1,0 +1,76 @@
+<a class="back-link" routerLink="/products">← Productos</a>
+
+@let current = product();
+@if (current.status === 'loading') {
+  <p class="muted" role="status">Cargando producto…</p>
+} @else if (current.status === 'error') {
+  <div class="alert alert--error" role="alert">{{ current.message }}</div>
+} @else {
+  @let item = current.data;
+  <header class="page-header">
+    <div>
+      <h1>{{ item.name }}</h1>
+      <p class="muted">
+        <code>{{ item.sku }}</code>
+        <span class="badge" [class.badge--muted]="!item.isActive">{{ item.isActive ? 'Activo' : 'Inactivo' }}</span>
+      </p>
+    </div>
+    <div class="header-actions">
+      @if (item.isActive) {
+        <a class="button button--ghost" routerLink="/movements/new" [queryParams]="{ type: 'Entry', productId: item.id }">
+          Registrar entrada
+        </a>
+        <a class="button button--ghost" routerLink="/movements/new" [queryParams]="{ type: 'Exit', productId: item.id }">
+          Registrar salida
+        </a>
+      }
+      @if (auth.isAdmin()) {
+        <a class="button button--primary" [routerLink]="['/products', item.id, 'edit']">Editar</a>
+      }
+    </div>
+  </header>
+
+  <section class="stats">
+    <div class="card stat">
+      <span class="muted">Stock actual</span>
+      <strong [class.text-danger]="item.currentStock === 0">{{ item.currentStock }}</strong>
+    </div>
+    <div class="card stat">
+      <span class="muted">Precio unitario</span>
+      <strong>{{ item.unitPrice | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</strong>
+    </div>
+    <div class="card stat">
+      <span class="muted">Valor en inventario</span>
+      <strong>{{ item.unitPrice * item.currentStock | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}</strong>
+    </div>
+  </section>
+
+  @if (item.description) {
+    <section class="card">
+      <h2>Descripción</h2>
+      <p>{{ item.description }}</p>
+    </section>
+  }
+
+  <section class="card">
+    <h2>Historial de movimientos</h2>
+    <p class="muted">Última actualización: {{ item.updatedAt | date: 'medium' }}</p>
+
+    @let moves = history();
+    @if (moves.status === 'loading') {
+      <p class="muted" role="status">Cargando historial…</p>
+    } @else if (moves.status === 'error') {
+      <div class="alert alert--error" role="alert">{{ moves.message }}</div>
+    } @else if (moves.data.items.length === 0) {
+      <p class="empty">Este producto todavía no tiene movimientos.</p>
+    } @else {
+      <app-movement-table [movements]="moves.data.items" [showProduct]="false" />
+      <app-pagination
+        [page]="moves.data.page"
+        [totalPages]="moves.data.totalPages"
+        [totalCount]="moves.data.totalCount"
+        (pageChange)="historyPage.set($event)"
+      />
+    }
+  </section>
+}

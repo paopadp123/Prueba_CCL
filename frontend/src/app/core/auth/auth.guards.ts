@@ -19,6 +19,13 @@ export const authGuard: CanMatchFn = (_route, segments) => {
 };
 
 /**
+ * Solo Admin. Un operador que escriba la URL a mano vuelve al listado de productos;
+ * aunque se saltara el guard, la API respondería 403.
+ */
+export const adminGuard: CanMatchFn = () =>
+  inject(AuthService).isAdmin() ? true : inject(Router).createUrlTree(['/products']);
+
+/**
  * Evita volver al login cuando ya hay sesión.
  */
 export const guestGuard: CanMatchFn = () =>

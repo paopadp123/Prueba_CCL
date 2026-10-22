@@ -5,7 +5,7 @@ import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { NotificationService } from '../notifications/notification.service';
 import { apiUrl } from './api-url';
-import { ApiError } from './api-error';
+import { ApiError, isGlobalError } from './api-error';
 
 /**
  * Convierte cualquier error HTTP en `ApiError` y decide quién lo muestra:
@@ -36,10 +36,6 @@ export const errorInterceptor: HttpInterceptorFn = (request, next) => {
     }),
   );
 };
-
-function isGlobalError(status: number): boolean {
-  return status === 0 || status === 403 || status === 429 || status >= 500;
-}
 
 function withReference(error: ApiError): string {
   return error.status >= 500 && error.correlationId

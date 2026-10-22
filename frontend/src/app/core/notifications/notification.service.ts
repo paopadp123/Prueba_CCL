@@ -1,5 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 
+import { ApiError, isGlobalError } from '../http/api-error';
+
 export type NotificationKind = 'error' | 'success' | 'info';
 
 export interface Notification {
@@ -29,6 +31,20 @@ export class NotificationService {
 
   info(message: string): void {
     this.show('info', message);
+  }
+
+  /**
+   * Muestra el error de una acción, salvo que el interceptor ya lo haya avisado.
+   */
+  failure(error: unknown, fallback = 'No se pudo completar la operación.'): void {
+    if (error instanceof ApiError) {
+      if (!isGlobalError(error.status) && error.status !== 401) {
+        this.error(error.message);
+      }
+      return;
+    }
+
+    this.error(fallback);
   }
 
   dismiss(id: number): void {
